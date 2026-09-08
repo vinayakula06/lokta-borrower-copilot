@@ -37,26 +37,33 @@ python -m http.server 8080
 
 ```mermaid
 flowchart TD
-    A[👋 Borrower Starts Conversation] --> B{Adaptive Questioning}
-    B -->|Salaried MNC| C1[Documented Net Income\nNo Haircut]
-    B -->|Self-Employed / Kirana| C2[ITR Floor + Haircut on Cash\n15% verified / 40% unverified]
-    B -->|Informal / Gig Worker| C3[Range Haircut + Savings Multiplier\nInformal FOIR 35%]
+    A["👋 Borrower Starts Conversation"] --> B{"Adaptive Questioning"}
+    B -->|"Salaried MNC"| C1["Documented Net Income<br/>No Haircut"]
+    B -->|"Self-Employed / Kirana"| C2["ITR Floor + Haircut on Cash<br/>15% verified / 40% unverified"]
+    B -->|"Informal / Gig Worker"| C3["Range Haircut + Savings Multiplier<br/>Informal FOIR 35%"]
     
-    C1 & C2 & C3 --> D{Collateral Declared?}
-    D -->|Property or Gold| E1[Auto-Route to Secured Product\nLAP LTV ≤ 60% | Gold LTV ≤ 75%\nLiquidation-Backed Pricing 9.0%-13.0%]
-    D -->|None / Unsecured| E2[Bureau Band Pricing\nKnown: Prime/Subprime Tier\nUnknown: Widened ±2% Band]
+    C1 --> D{"Collateral Declared?"}
+    C2 --> D
+    C3 --> D
+
+    D -->|"Property or Gold"| E1["Auto-Route to Secured Product<br/>LAP LTV ≤ 60% / Gold LTV ≤ 75%<br/>Liquidation-Backed Pricing 9.0%–13.0%"]
+    D -->|"None / Unsecured"| E2["Bureau Band Pricing<br/>Known: Prime / Subprime Tier<br/>Unknown: Widened ±2% Band"]
     
-    E1 & E2 --> F[Dual Sizing & Affordability Engine]
-    F --> G1[Lender Sanction Limit\nGross FOIR Capacity]
-    F --> G2[Safe Borrower Ceiling\nDisposable Surplus & Buffer PV Annuity]
+    E1 --> F["Dual Sizing & Affordability Engine"]
+    E2 --> F
+
+    F --> G1["Lender Sanction Limit<br/>Gross FOIR Capacity"]
+    F --> G2["Safe Borrower Ceiling<br/>Disposable Surplus & Buffer PV Annuity"]
     
-    G1 & G2 --> H[12-Point Invariant Consistency Validator]
-    H --> I[O1 Verdict & Recovery Guidance\nO2 Dual Sizing & Limits\nO3 Fair Rate & Cash-Flow IRR APR\nO4 Safe EMI & Dual Stress Tests]
+    G1 --> H["12-Point Invariant Consistency Validator"]
+    G2 --> H
+
+    H --> I["Four Underwriting Outputs<br/>O1 Verdict & Recovery Guidance<br/>O2 Dual Sizing & Limits<br/>O3 Fair Rate & Cash-Flow IRR APR<br/>O4 Safe EMI & Dual Stress Tests"]
     
-    I --> J[📑 Tactical Negotiation Card\nBranch Talking Points & Walk-Away Triggers]
-    I --> K[📄 Executive PDF Assessment Report\nDeclared Inputs Profile + Full Audit]
-    I --> L[🔍 Interactive Lender Quote Check\nGood / Reasonable / Expensive / Predatory]
-    I --> M[💬 Free-Form 'Ask Anything' Q&A Mode]
+    I --> J["📑 Tactical Negotiation Card<br/>Branch Talking Points & Walk-Away Triggers"]
+    I --> K["📄 Executive PDF Assessment Report<br/>Declared Inputs Profile + Full Audit"]
+    I --> L["🔍 Interactive Lender Quote Check<br/>Good / Reasonable / Expensive / Avoid"]
+    I --> M["💬 Free-Form 'Ask Anything' Q&A Mode"]
 ```
 
 ---
