@@ -199,6 +199,7 @@ body { background: var(--bg); color: var(--ink); font-family: var(--sans); font-
   border-color: var(--accent);
 }
 .input-choices { display: flex; flex-wrap: wrap; gap: .55rem; margin-bottom: .75rem; }
+.input-choices:empty { display: none; margin-bottom: 0; }
 .choice-btn {
   padding: .48rem 1.05rem; border: 1.5px solid var(--accent);
   background: var(--accent-softer); color: var(--accent);
@@ -1915,6 +1916,7 @@ function enablePostAssessmentInput() {
   inputEl.value = '';
   inputEl.type = 'text';
   inputEl.style.display = '';
+  inputEl.disabled = false;
   inputEl.placeholder = 'Ask any question (e.g. "What is FOIR?", "How to improve?") or type a new loan…';
   sendBtn.disabled = false;
   activeInputCallback = null;
@@ -2553,58 +2555,7 @@ function printFullReport() {
   }, 100);
 }
 
-/* ===== POST-ASSESSMENT INTERACTION & CONVERSATION RESET ===== */
-function enablePostAssessmentInput() {
-  inputEl.style.display = '';
-  inputEl.disabled = false;
-  inputEl.placeholder = "Start a new loan (e.g. '₹5L car loan') or ask a question…";
-  sendBtn.disabled = false;
-
-  renderPostAssessmentButtons();
-}
-
-function renderPostAssessmentButtons() {
-  choicesEl.innerHTML = '';
-
-  // Only two clean buttons: New Chat and Other Person
-  const newChatBtn = document.createElement('button');
-  newChatBtn.className = 'choice-btn';
-  newChatBtn.textContent = '🔄 New Chat';
-  newChatBtn.addEventListener('click', () => startNewBorrowerConvo());
-  choicesEl.appendChild(newChatBtn);
-
-  const otherPersonBtn = document.createElement('button');
-  otherPersonBtn.className = 'choice-btn';
-  otherPersonBtn.textContent = '👤 Other Person';
-  otherPersonBtn.addEventListener('click', () => renderPersonaPickerButtons());
-  choicesEl.appendChild(otherPersonBtn);
-}
-
-function renderPersonaPickerButtons() {
-  choicesEl.innerHTML = '';
-
-  const personas = [
-    { label: 'Priya · Salaried', key: 'priya' },
-    { label: 'Ravi · Self-employed', key: 'ravi' },
-    { label: 'Anita · Informal', key: 'anita' },
-  ];
-
-  personas.forEach(p => {
-    const btn = document.createElement('button');
-    btn.className = 'choice-btn';
-    btn.textContent = p.label;
-    btn.addEventListener('click', () => loadPersona(p.key));
-    choicesEl.appendChild(btn);
-  });
-
-  const backBtn = document.createElement('button');
-  backBtn.className = 'choice-btn';
-  backBtn.style.opacity = '0.75';
-  backBtn.textContent = '✕ Back';
-  backBtn.addEventListener('click', () => renderPostAssessmentButtons());
-  choicesEl.appendChild(backBtn);
-}
-
+/* ===== POST-ASSESSMENT CONVERSATION RESET ===== */
 async function startNewBorrowerConvo(initialPrompt) {
   closeNegModal();
   await restart();
