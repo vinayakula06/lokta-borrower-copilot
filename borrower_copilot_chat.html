@@ -156,6 +156,41 @@ body { background: var(--bg); color: var(--ink); font-family: var(--sans); font-
   padding-bottom: .55rem;
   border-bottom: 1px dashed var(--rule);
 }
+.chat-input-area.post-report {
+  padding: .85rem 1.4rem;
+}
+.chat-input-area.post-report .chat-nav-row {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+  justify-content: center;
+  gap: .75rem;
+}
+.chat-input-area.post-report .nav-btn {
+  padding: .52rem 1.15rem;
+  font-size: .86rem;
+  box-shadow: var(--shadow-sm);
+}
+.guided-progress-wrap {
+  height: 3px;
+  background: var(--rule);
+  width: 100%;
+  overflow: hidden;
+}
+.guided-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--accent-l));
+  width: 10%;
+  transition: width .35s ease;
+}
+@keyframes metricPulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.018); box-shadow: 0 0 0 3px var(--accent-softer); }
+  100% { transform: scale(1); }
+}
+.metric-pulse {
+  animation: metricPulse .4s ease;
+}
 .nav-btn {
   display: inline-flex;
   align-items: center;
@@ -982,6 +1017,9 @@ body { background: var(--bg); color: var(--ink); font-family: var(--sans); font-
       </button>
       <button class="mode-tab" id="tabQA" onclick="switchMode('qa')">💬 Ask Anything</button>
     </div>
+    <div class="guided-progress-wrap" id="guidedProgressWrap">
+      <div class="guided-progress-bar" id="guidedProgressBar" style="width: 10%;"></div>
+    </div>
 
     <div class="chat-messages" id="chatMessages"></div>
 
@@ -1011,6 +1049,9 @@ body { background: var(--bg); color: var(--ink); font-family: var(--sans); font-
         </button>
         <button class="nav-btn new-chat" id="newChatBtn" onclick="handleNewChat()" title="Start a fresh conversation">
           <span>➕ New Chat</span>
+        </button>
+        <button class="nav-btn" id="faqBtn" onclick="switchMode('qa')" title="Browse topics & FAQs" style="display:none">
+          <span>🔍 Browse FAQs</span>
         </button>
       </div>
       <div class="input-choices" id="inputChoices"></div>
@@ -1847,31 +1888,51 @@ function buildChoices(q) {
   });
 }
 
+function updateProgressBar(pct) {
+  const bar = document.getElementById('guidedProgressBar');
+  if (bar) bar.style.width = Math.max(5, Math.min(100, pct)) + '%';
+}
+
 function setInputMode(q) {
   choicesEl.innerHTML = '';
   inputEl.value = '';
+  inputEl.disabled = false;
+  sendBtn.disabled = false;
+
+  const inputArea = document.getElementById('chatInputArea');
+  if (inputArea) inputArea.classList.remove('post-report');
+  const faqBtn = document.getElementById('faqBtn');
+  if (faqBtn) faqBtn.style.display = 'none';
+  const inputRow = document.querySelector('.input-row');
 
   if (!q || q.input === 'none') {
+    if (inputRow) inputRow.style.display = 'none';
     inputEl.style.display = 'none';
+    inputEl.disabled = true;
     sendBtn.disabled = true;
     return;
   }
-  inputEl.style.display = '';
-  sendBtn.disabled = false;
 
   if (q.input === 'choices') {
+    if (inputRow) inputRow.style.display = 'none';
     inputEl.style.display = 'none';
+    inputEl.disabled = true;
     sendBtn.disabled = true;
     buildChoices(q);
   } else if (q.input === 'choices_with_text') {
+    if (inputRow) inputRow.style.display = 'flex';
     inputEl.style.display = '';
+    inputEl.disabled = false;
+    sendBtn.style.display = '';
     sendBtn.disabled = false;
     inputEl.type = 'text';
     inputEl.placeholder = q.placeholder || 'Select an option above, or type your purpose…';
     buildChoices(q);
-    setTimeout(() => inputEl.focus(), 100);
+    setTimeout(() => { inputEl.disabled = false; inputEl.focus(); }, 100);
   } else if (q.input === 'range') {
+    if (inputRow) inputRow.style.display = 'none';
     inputEl.style.display = 'none';
+    inputEl.disabled = true;
     sendBtn.disabled = false;
     rangeVals = [null, null];
     // Two number inputs
@@ -1890,10 +1951,15 @@ function setInputMode(q) {
     });
     choicesEl.appendChild(btn);
   } else {
+    if (inputRow) inputRow.style.display = 'flex';
+    inputEl.style.display = '';
+    inputEl.disabled = false;
+    sendBtn.style.display = '';
+    sendBtn.disabled = false;
     inputEl.type = q.input === 'number' ? 'number' : 'text';
     inputEl.placeholder = q.placeholder || 'Type your answer…';
     inputEl.min = '0';
-    setTimeout(() => inputEl.focus(), 100);
+    setTimeout(() => { inputEl.disabled = false; inputEl.focus(); }, 100);
   }
 }
 
@@ -1901,11 +1967,20 @@ function setInputMode(q) {
 let activeInputCallback = null;
 
 function showInputWithPlaceholder(placeholder, callback) {
+  const inputArea = document.getElementById('chatInputArea');
+  if (inputArea) inputArea.classList.remove('post-report');
+  const faqBtn = document.getElementById('faqBtn');
+  if (faqBtn) faqBtn.style.display = 'none';
+
   choicesEl.innerHTML = '';
   inputEl.value = '';
   inputEl.type = 'text';
   inputEl.style.display = '';
+  inputEl.disabled = false;
+  const inputRow = document.querySelector('.input-row');
+  if (inputRow) inputRow.style.display = 'flex';
   inputEl.placeholder = placeholder;
+  sendBtn.style.display = '';
   sendBtn.disabled = false;
   activeInputCallback = callback;
   setTimeout(() => inputEl.focus(), 100);
@@ -1914,12 +1989,22 @@ function showInputWithPlaceholder(placeholder, callback) {
 function enablePostAssessmentInput() {
   choicesEl.innerHTML = '';
   inputEl.value = '';
-  inputEl.type = 'text';
-  inputEl.style.display = '';
-  inputEl.disabled = false;
-  inputEl.placeholder = 'Ask any question (e.g. "What is FOIR?", "How to improve?") or type a new loan…';
-  sendBtn.disabled = false;
+  inputEl.style.display = 'none';
+  inputEl.disabled = true;
+  sendBtn.disabled = true;
   activeInputCallback = null;
+
+  const inputRow = document.querySelector('.input-row');
+  if (inputRow) inputRow.style.display = 'none';
+
+  const faqBtn = document.getElementById('faqBtn');
+  if (faqBtn) faqBtn.style.display = '';
+
+  const inputArea = document.getElementById('chatInputArea');
+  if (inputArea) inputArea.classList.add('post-report');
+
+  updateProgressBar(100);
+  updateNavState();
 }
 
 /* ===== CHAT NAVIGATION HISTORY STACK ===== */
@@ -1930,7 +2015,7 @@ function updateNavState() {
   const newChatBtn = document.getElementById('newChatBtn');
 
   if (backBtn) {
-    backBtn.disabled = (questionHistory.length === 0 || isTyping);
+    backBtn.disabled = isTyping || (!done && questionHistory.length === 0);
   }
   if (newChatBtn) {
     newChatBtn.disabled = isTyping;
@@ -1948,7 +2033,18 @@ function saveQuestionState(q) {
 }
 
 async function handleGoBack() {
-  if (questionHistory.length === 0 || isTyping) return;
+  if (isTyping) return;
+  const inputArea = document.getElementById('chatInputArea');
+  if (inputArea) inputArea.classList.remove('post-report');
+  const faqBtn = document.getElementById('faqBtn');
+  if (faqBtn) faqBtn.style.display = 'none';
+  inputEl.disabled = false;
+  sendBtn.disabled = false;
+
+  if (questionHistory.length === 0) {
+    await restart();
+    return;
+  }
   const prevState = questionHistory.pop();
 
   // Restore state A
@@ -1966,6 +2062,12 @@ async function handleGoBack() {
 }
 
 async function handleNewChat() {
+  const inputArea = document.getElementById('chatInputArea');
+  if (inputArea) inputArea.classList.remove('post-report');
+  const faqBtn = document.getElementById('faqBtn');
+  if (faqBtn) faqBtn.style.display = 'none';
+  inputEl.disabled = false;
+  sendBtn.disabled = false;
   questionHistory = [];
   done = false;
   await restart();
@@ -1978,6 +2080,35 @@ async function askQuestion(q) {
   isTyping = true;
   setInputMode(null); // disable while typing
   updateNavState();
+
+  const progressMap = {
+    greeting: 10,
+    amount: 25,
+    employment: 40,
+    age: 45,
+    salary: 60,
+    vintage: 50,
+    itr: 60,
+    cash_range: 65,
+    bank_statement: 70,
+    collateral: 75,
+    collateral_val: 80,
+    gold_val: 80,
+    co_applicant: 82,
+    co_income: 85,
+    inc_informal: 60,
+    savings_informal: 70,
+    bounce_informal: 75,
+    app_loans_informal: 80,
+    app_debt_bal_informal: 85,
+    existing_emi: 88,
+    expenses: 92,
+    cibil: 96,
+    compute: 100
+  };
+  if (progressMap[q.id] !== undefined) {
+    updateProgressBar(progressMap[q.id]);
+  }
 
   const text = getQuestionText(q);
   await addBotMessage(text);
@@ -2645,8 +2776,17 @@ function updateLivePanel() {
       • Income −20% → safe EMI drops to <strong>${fmtINR(r.stressSafeEMI)}/mo</strong><br>
       • Rate +2.0% (to ${fmtPct(r.stressRatePct)}) → ask EMI: <strong>${fmtINR(r.stressRateEMI)}/mo</strong>
     </div>`;
-  o4.innerHTML = o4html;
   document.getElementById('o4block').classList.add('lit');
+
+  // Trigger subtle pulse animation on updated blocks
+  ['o2block', 'o3block', 'o4block'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.classList.remove('metric-pulse');
+      void el.offsetWidth;
+      el.classList.add('metric-pulse');
+    }
+  });
 }
 
 function renderNegCard() {
@@ -2761,6 +2901,17 @@ const PERSONAS = {
 
 async function loadPersona(key) {
   if (isTyping) return;
+  const inputArea = document.getElementById('chatInputArea');
+  if (inputArea) inputArea.classList.remove('post-report');
+  const faqBtn = document.getElementById('faqBtn');
+  if (faqBtn) faqBtn.style.display = 'none';
+  questionHistory = [{
+    q: Q.greeting,
+    answersState: {},
+    messageCount: 1
+  }];
+  updateProgressBar(100);
+
   A = { ...PERSONAS[key] };
   productClassification = { type: A.loanType };
   currentStep = 0; done = false;
@@ -2790,6 +2941,7 @@ async function loadPersona(key) {
     done = true;
     await addBotMessage(buildActionsCardHTML(), 200);
     enablePostAssessmentInput();
+    updateNavState();
   }, 800);
 }
 
@@ -2802,6 +2954,15 @@ document.querySelectorAll('.persona-pill').forEach(btn => {
    ==================================================== */
 async function restart() {
   closeNegModal();
+  const inputArea = document.getElementById('chatInputArea');
+  if (inputArea) inputArea.classList.remove('post-report');
+  const faqBtn = document.getElementById('faqBtn');
+  if (faqBtn) faqBtn.style.display = 'none';
+  inputEl.disabled = false;
+  sendBtn.disabled = false;
+  isTyping = false;
+  updateProgressBar(10);
+
   A={}; currentQ=null; done=false; productClassification=null; rangeVals=[null,null]; questionHistory=[];
   messagesEl.innerHTML='';
   document.getElementById('negWrap').style.display='none';
@@ -2861,11 +3022,13 @@ function switchMode(mode) {
   document.getElementById('tabQA').classList.toggle('active', mode === 'qa');
 
   const qaPanel = document.getElementById('qaKeywordsPanel');
+  const progWrap = document.getElementById('guidedProgressWrap');
   const inputRow = document.querySelector('.input-row');
   const chatNavRow = document.getElementById('chatNavRow');
   const personaBar = document.getElementById('personaBarWrap');
 
   if (mode === 'qa') {
+    if (progWrap) progWrap.style.display = 'none';
     if (qaPanel) qaPanel.style.display = '';
     if (inputRow) inputRow.style.display = 'none';
     if (chatNavRow) chatNavRow.style.display = 'none';
@@ -2879,15 +3042,21 @@ function switchMode(mode) {
     }
     renderPredefinedKeywords();
   } else {
+    if (progWrap) progWrap.style.display = '';
     if (qaPanel) qaPanel.style.display = 'none';
-    if (inputRow) inputRow.style.display = '';
     if (chatNavRow) chatNavRow.style.display = '';
     if (personaBar) personaBar.style.display = '';
 
     messagesEl.innerHTML = guidedMessages;
-    if (currentQ && !done) setInputMode(currentQ);
-    else if (done) enablePostAssessmentInput();
-    else setInputMode(null);
+    if (currentQ && !done) {
+      if (inputRow) inputRow.style.display = '';
+      setInputMode(currentQ);
+    } else if (done) {
+      enablePostAssessmentInput();
+    } else {
+      if (inputRow) inputRow.style.display = 'none';
+      setInputMode(null);
+    }
   }
   scrollChat();
 }
