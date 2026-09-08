@@ -285,6 +285,24 @@ body { background: var(--bg); color: var(--ink); font-family: var(--sans); font-
 .live-panel.panel-collapsed { overflow: hidden; }
 .live-panel.panel-collapsed .live-body { display: none; }
 .live-panel.panel-collapsed .live-header-labels { display: none; }
+/* computing dots — visible only when collapsed */
+.panel-computing { display: none; flex-direction: column; align-items: center; gap: 6px; padding: .6rem 0; }
+.live-panel.panel-collapsed .panel-computing { display: flex; }
+.live-panel.panel-collapsed.panel-ready .panel-computing { display: none; }
+.computing-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--accent); opacity: .25;
+  animation: dotPulse 1.4s ease-in-out infinite;
+}
+.computing-dot:nth-child(2) { animation-delay: .22s; }
+.computing-dot:nth-child(3) { animation-delay: .44s; }
+@keyframes dotPulse {
+  0%,80%,100% { opacity:.18; transform:scale(.8); }
+  40%          { opacity:1;   transform:scale(1.2); }
+}
+/* ready tick — visible only when collapsed + ready */
+.panel-ready-tick { display: none; font-size: 1rem; color: var(--good); }
+.live-panel.panel-collapsed.panel-ready .panel-ready-tick { display: block; }
 .live-header {
   padding: 1.15rem 1.4rem .9rem;
   border-bottom: 1px solid var(--rule);
@@ -1101,7 +1119,13 @@ body { background: var(--bg); color: var(--ink); font-family: var(--sans); font-
         <span>Live outputs</span>
         <span id="liveStatus" style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--muted)">Waiting for answers…</span>
       </div>
-      <button class="panel-collapse-btn" id="panelCollapseBtn" title="Collapse panel" onclick="toggleLivePanel()">›</button>
+      <div class="panel-computing" id="panelComputing">
+        <div class="computing-dot"></div>
+        <div class="computing-dot"></div>
+        <div class="computing-dot"></div>
+        <span class="panel-ready-tick">✓</span>
+      </div>
+      <button class="panel-collapse-btn" id="panelCollapseBtn" title="Expand panel" onclick="toggleLivePanel()">‹</button>
     </div>
     <div class="live-body" id="liveBody">
       <!-- Confidence -->
@@ -2043,6 +2067,8 @@ function enablePostAssessmentInput() {
 
   updateProgressBar(100);
   updateNavState();
+  // Auto-expand the live panel now that results are ready
+  autoExpandPanel();
 }
 
 /* ===== CHAT NAVIGATION HISTORY STACK ===== */
@@ -3001,6 +3027,10 @@ async function restart() {
   inputEl.disabled = false;
   sendBtn.disabled = false;
   isTyping = false;
+  // Reset panel to collapsed + remove ready state so dots animate fresh
+  const panel = document.getElementById('livePanel');
+  if (panel) panel.classList.remove('panel-ready');
+  setPanelCollapsed(true);
   updateProgressBar(10);
 
   A={}; currentQ=null; done=false; productClassification=null; rangeVals=[null,null]; questionHistory=[];
@@ -3026,19 +3056,34 @@ async function restart() {
 document.getElementById('restartBtn').addEventListener('click', restart);
 
 // Live Panel Collapse Toggle
-function toggleLivePanel() {
+function setPanelCollapsed(collapse) {
   const panel = document.getElementById('livePanel');
   const btn   = document.getElementById('panelCollapseBtn');
   const app   = document.querySelector('.app');
   if (!panel || !btn) return;
-  const collapsed = panel.classList.toggle('panel-collapsed');
-  btn.textContent = collapsed ? '‹' : '›';
-  btn.title       = collapsed ? 'Expand panel' : 'Collapse panel';
-  if (app) {
-    app.style.gridTemplateColumns = collapsed
-      ? '1fr 42px'
-      : '';
+  if (collapse) {
+    panel.classList.add('panel-collapsed');
+    btn.textContent = '‹';
+    btn.title = 'Expand panel';
+    if (app) app.style.gridTemplateColumns = '1fr 42px';
+  } else {
+    panel.classList.remove('panel-collapsed');
+    btn.textContent = '›';
+    btn.title = 'Collapse panel';
+    if (app) app.style.gridTemplateColumns = '';
   }
+}
+function toggleLivePanel() {
+  const panel = document.getElementById('livePanel');
+  if (!panel) return;
+  setPanelCollapsed(!panel.classList.contains('panel-collapsed'));
+}
+function autoExpandPanel() {
+  const panel = document.getElementById('livePanel');
+  if (!panel) return;
+  panel.classList.add('panel-ready');
+  // Small delay so user sees the ✓ tick briefly before expanding
+  setTimeout(() => setPanelCollapsed(false), 600);
 }
 
 // Theme Toggle: default is light (white/light bg). Users can toggle anytime via the moon/sun button.
@@ -3052,7 +3097,8 @@ if (themeToggle) {
   });
 }
 
-// Boot
+// Boot — collapse the panel by default so chat takes full width
+setPanelCollapsed(true);
 restart();
 
 /* ====================================================
