@@ -216,3 +216,35 @@ Before generating the Negotiation Card or final verdict, the engine executes 12 
    - **Credit Cards & Revolving Overdrafts:** Explicitly declined as revolving credit outside the amortizing loan engine.
    - **BNPL:** Flagged as high-cost short-term credit outside the engine's scope.
 
+---
+
+## 11. Multi-Dimensional Confidence Engine (`RULE.CONFIDENCE`)
+
+Rather than collapsing uncertainty into a single opaque number, the engine evaluates evidence confidence across three orthogonal dimensions:
+
+1. **Affordability Confidence (`CONF.AFFORDABILITY`):**
+   - **HIGH:** Documented income (salaried MNC or ITR or verified 6-month bank statements) + explicit living expenses declared above demographic floor.
+   - **MEDIUM:** Documented income with demographic floor fallback, or declared living expenses with variable cash income.
+   - **LOW:** Unverified cash income (40% haircut) combined with living expenses estimated via demographic floor.
+2. **Pricing Accuracy Confidence (`CONF.PRICING`):**
+   - **HIGH:** Exact credit score known (pinpoints specific prime/near-prime tier) or secured collateral backing (asset liquidation pricing takes precedence over bureau score).
+   - **LOW:** Credit score unknown — rate band widened $\pm 2\%$ around subprime midpoint to reflect uncertainty without assuming worst-case score.
+3. **Product Routing Confidence (`CONF.ROUTING`):**
+   - **HIGH:** Secured collateral verified against statutory LTV cap ($\le 60\%$ LAP, $\le 75\%$ Gold), or standard employment profile mapped cleanly to commercial product parameters.
+   - **MEDIUM:** Informal or gig worker profile requiring adaptive savings-buffer multipliers.
+
+---
+
+## 12. Lender Quote Evaluation Engine (`RULE.QUOTE.EVAL`)
+
+When a borrower receives an interest rate offer from a bank or NBFC, the engine benchmarks the quote against the profile's fair band:
+
+| Offer Category | Trigger Condition | Status Code | Recommended Borrower Action |
+|---|---|:---:|---|
+| **UNSAFE** | Overall verdict is `DONT_BORROW` | `UNSAFE` | 🛑 Reject offer regardless of rate. Focus on Path to Yes recovery steps. |
+| **GOOD OFFER** | $\text{Rate} \le \text{Floor} + 1.0\%$ | `GOOD` | ✅ Excellent pricing. Verify all-in APR with GST $\le \text{Floor} + \text{Fee APR} + 0.5\%$. Proceed. |
+| **REASONABLE** | $\text{Floor} + 1.0\% < \text{Rate} \le \text{Ceiling} + 0.5\%$ | `REASONABLE` | ✔️ Acceptable inside benchmark. Push back to target lower half of fair band. |
+| **EXPENSIVE** | $\text{Ceiling} + 0.5\% < \text{Rate} \le \text{Ceiling} + 2.0\%$ | `EXPENSIVE` | ⚠️ Paying more than profile justifies. Walk away if rate $> \text{Ceiling} + 0.5\%$. |
+| **VERY EXPENSIVE** | $\text{Rate} > \text{Ceiling} + 2.0\%$ | `VERY_EXPENSIVE` | 🚨 Predatory/high-risk pricing. Do not accept. Approach alternative lender with card. |
+
+

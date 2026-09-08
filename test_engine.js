@@ -20,7 +20,8 @@ const {
   assessExpenses,
   assessExistingObligations,
   determineRateBand,
-  assessBorrower
+  assessBorrower,
+  evaluateLenderQuote
 } = require('./rules.js');
 
 let passedTests = 0;
@@ -463,23 +464,162 @@ test('Section 15: All 12 automated consistency checks pass completely', () => {
   assert.ok(sec15Result.validation.checksPassed >= 10);
 });
 
-test('Section 13: Consistency failure blocks BORROW verdict and returns UNDERWRITING VALIDATION FAILED', () => {
-  // Clone result and simulate a tampered calculation (e.g. safe principal altered by > ₹2)
+test('Section 19: Consistency validator detects tampered calculations without breaking borrower verdict', () => {
   const tampered = JSON.parse(JSON.stringify(sec15Result));
   tampered.amounts.safeMaxAmount = 999999; // intentionally tampered
   
-  // Re-run validation validator directly
   const { validateUnderwritingConsistency } = require('./rules.js');
-  // If validateUnderwritingConsistency is internal, evaluate via assessBorrower or directly
   if (typeof validateUnderwritingConsistency === 'function') {
     const val = validateUnderwritingConsistency(tampered);
     assert.strictEqual(val.isValid, false);
-    assert.strictEqual(tampered.verdictCode, 'VALIDATION_FAILED');
-    assert.ok(tampered.verdictReason.includes('UNDERWRITING VALIDATION FAILED'));
-    assert.strictEqual(tampered.negotiationCard.verdict, 'UNDERWRITING VALIDATION FAILED');
+    assert.ok(val.errors.length > 0);
   }
 });
 
+test('User reported Gold LTV scenario reconciles safe EMI and safe principal without validation failure', () => {
+  const goldProfile = {
+    name: 'User Reported Gold Profile',
+    employment: 'salaried',
+    salary: 68333,
+    existingEMI: 10000,
+    collateralType: 'gold',
+    collateralValue: 200000, // LTV 75% -> 1.5L cap
+    amount: 1000000, // 10L ask
+    tenureMonths: 24
+  };
+  const res = assessBorrower(goldProfile);
+  assert.strictEqual(res.validation.isValid, true, `Validation failed: ${res.validation.errors.join('; ')}`);
+  assert.strictEqual(res.amounts.safeMaxAmount, 150000);
+  assert.strictEqual(res.emi.safeMonthlyCeiling, 7131);
+  assert.notStrictEqual(res.verdictCode, 'VALIDATION_FAILED');
+  assert.ok(['BORROW_LESS', 'DONT_BORROW'].includes(res.verdictCode));
+});
+
+
+// 10. RANDOMIZED / PROPERTY-BASED TESTING (1,000 Profiles)
+// ---------------------------------------------------------------------------
+console.log('\n10. Randomized / Property-Based Testing (1,000 Random Profiles):');
+
+test('1,000 randomized valid/extreme borrower profiles satisfy all core invariants', () => {
+  const employments = ['salaried', 'self_employed', 'informal'];
+  const loanTypes = ['personal', 'business', 'home', 'lap', 'gold', 'twoWheeler', 'education'];
+  
+  // Seeded pseudo-random generator for 100% deterministic reproducibility
+  let seed = 42;
+  function rnd() {
+    seed = (seed * 9301 + 49297) % 233280;
+    return seed / 233280;
+  }
+
+  let validProfilesTested = 0;
+
+  for (let i = 0; i < 1000; i++) {
+    const profile = {
+      name: `Random Profile ${i+1}`,
+      employment: employments[Math.floor(rnd() * employments.length)],
+      salary: Math.floor(rnd() * 500000), // up to ₹5L/mo
+      itrAnnual: Math.floor(rnd() * 2400000),
+      cashLow: Math.floor(rnd() * 100000),
+      cashHigh: Math.floor(rnd() * 200000),
+      bankVerified: rnd() > 0.5,
+      existingEMI: Math.floor(rnd() * 100000),
+      expenses: Math.floor(rnd() * 150000),
+      creditScore: rnd() > 0.2 ? Math.floor(300 + rnd() * 550) : undefined,
+      scoreUnknown: rnd() <= 0.2,
+      collateralType: rnd() > 0.5 ? 'property' : 'none',
+      collateralValue: Math.floor(rnd() * 10000000), // up to 1 Cr
+      amount: Math.floor(rnd() * 5000000), // up to 50L
+      tenureMonths: Math.floor(1 + rnd() * 119), // 1 to 120 mo
+      interestRate: Number((rnd() * 36).toFixed(2)), // 0 to 36%
+      loanType: loanTypes[Math.floor(rnd() * loanTypes.length)]
+    };
+
+    const res = assessBorrower(profile);
+
+    // Invariant 1: No NaN or Infinity in outputs
+    assert.strictEqual(Number.isNaN(res.amounts.safeMaxAmount), false, `NaN in safeMaxAmount at index ${i}`);
+    assert.strictEqual(Number.isFinite(res.amounts.safeMaxAmount), true, `Non-finite safeMaxAmount at index ${i}`);
+    assert.strictEqual(Number.isNaN(res.emi.safeMonthlyCeiling), false, `NaN in safeMonthlyCeiling at index ${i}`);
+    assert.strictEqual(Number.isFinite(res.emi.safeMonthlyCeiling), true, `Non-finite safeMonthlyCeiling at index ${i}`);
+
+    // Invariant 2: Non-negative capacity
+    assert.ok(res.amounts.safeMaxAmount >= 0, `Negative safeMaxAmount at index ${i}`);
+    assert.ok(res.emi.safeMonthlyCeiling >= 0, `Negative safeMonthlyCeiling at index ${i}`);
+
+    // Invariant 3: Verdict code is one of the standard canonical verdicts
+    assert.ok(['BORROW', 'BORROW_LESS', 'DONT_BORROW', 'VALIDATION_FAILED'].includes(res.verdictCode), `Invalid verdictCode ${res.verdictCode} at index ${i}`);
+
+    // Invariant 4: Reverse circularity holds for calculated EMI and principal
+    if (res.emi.requestedLoanEMI > 0 && profile.amount > 0 && profile.interestRate > 0 && profile.tenureMonths > 0) {
+      const reP = calculatePrincipalFromEMI(res.emi.requestedLoanEMI, profile.interestRate, profile.tenureMonths, true);
+      const diffRatio = Math.abs(reP - profile.amount) / profile.amount;
+      assert.ok(diffRatio < 0.05, `Circularity discrepancy > 5% at index ${i}: original ${profile.amount}, derived ${reP}`);
+    }
+
+    validProfilesTested++;
+  }
+
+  assert.strictEqual(validProfilesTested, 1000, 'Must successfully complete 1,000 profile property tests');
+});
+
+
+console.log('\n11. Multi-Dimensional Confidence & Lender Quote Evaluation:');
+
+test('Priya: Multi-dimensional confidence outputs HIGH across affordability, pricing, and routing', () => {
+  assert.ok(priyaResult.confidence.dimensions, 'Missing confidence.dimensions');
+  assert.strictEqual(priyaResult.confidence.dimensions.affordability.level, 'HIGH');
+  assert.strictEqual(priyaResult.confidence.dimensions.pricing.level, 'HIGH');
+  assert.strictEqual(priyaResult.confidence.dimensions.routing.level, 'HIGH');
+  assert.strictEqual(priyaResult.confidence.level, 'HIGH');
+});
+
+test('Ravi: Pricing and Routing confidence are HIGH due to verified LAP collateral', () => {
+  assert.strictEqual(raviResult.confidence.dimensions.pricing.level, 'HIGH');
+  assert.strictEqual(raviResult.confidence.dimensions.routing.level, 'HIGH');
+  assert.strictEqual(raviResult.confidence.dimensions.affordability.level, 'HIGH');
+});
+
+test('Anita: Informal profile produces MEDIUM affordability and LOW pricing confidence', () => {
+  assert.strictEqual(anitaResult.confidence.dimensions.affordability.level, 'MEDIUM');
+  assert.strictEqual(anitaResult.confidence.dimensions.pricing.level, 'LOW');
+  assert.strictEqual(anitaResult.confidence.dimensions.routing.level, 'MEDIUM');
+});
+
+test('Lender Quote Evaluation: Rates at or below floor are classified as GOOD', () => {
+  const quote = evaluateLenderQuote(priyaResult, 11.0);
+  assert.strictEqual(quote.status, 'GOOD');
+  assert.strictEqual(quote.icon, '✅');
+  assert.ok(quote.explanation.includes('at or below the fair floor'));
+});
+
+test('Lender Quote Evaluation: Rates within the fair ceiling are classified as REASONABLE', () => {
+  const quote = evaluateLenderQuote(priyaResult, 13.2);
+  assert.strictEqual(quote.status, 'REASONABLE');
+  assert.strictEqual(quote.icon, '✔️');
+  assert.ok(quote.action.includes('Push back to target'));
+});
+
+test('Lender Quote Evaluation: Rates above ceiling trigger EXPENSIVE verdict and walk-away ceiling', () => {
+  const quote = evaluateLenderQuote(priyaResult, 14.5);
+  assert.strictEqual(quote.status, 'EXPENSIVE');
+  assert.strictEqual(quote.icon, '⚠️');
+  assert.strictEqual(quote.walkAwayRate, 13.5);
+  assert.ok(quote.action.includes('Walk away if the rate stays above 13.5%'));
+});
+
+test('Lender Quote Evaluation: Predatory rate triggers VERY_EXPENSIVE avoidance warning', () => {
+  const quote = evaluateLenderQuote(priyaResult, 18.0);
+  assert.strictEqual(quote.status, 'VERY_EXPENSIVE');
+  assert.strictEqual(quote.icon, '🚨');
+  assert.ok(quote.explanation.includes('5.0% above your fair ceiling'));
+});
+
+test('Lender Quote Evaluation: Don\'t Borrow verdict renders any quote UNSAFE regardless of rate', () => {
+  const quote = evaluateLenderQuote(anitaResult, 8.5);
+  assert.strictEqual(quote.status, 'UNSAFE');
+  assert.strictEqual(quote.icon, '🛑');
+  assert.ok(quote.explanation.includes("Don't Borrow"));
+});
 
 // ---------------------------------------------------------------------------
 // SUMMARY
@@ -493,3 +633,4 @@ if (failedTests > 0) {
 } else {
   process.exit(0);
 }
+

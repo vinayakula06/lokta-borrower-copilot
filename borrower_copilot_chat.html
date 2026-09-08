@@ -7,7 +7,7 @@
 <meta name="description" content="A private, conversational self-assessment for Indian borrowers. No login, no bureau pull. Ask questions, get honest answers.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
-<script src="rules.js"></script>
+<script src="rules.js?v=3"></script>
 <style>
 /* ===== TOKENS ===== */
 :root {
@@ -263,6 +263,15 @@ body { background: var(--bg); color: var(--ink); font-family: var(--sans); font-
 .conf-bar.warn { background: var(--warn); }
 .conf-bar.bad  { background: var(--bad); }
 .conf-label { font-size: .78rem; color: var(--muted); font-weight: 600; }
+.conf-dims { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 3px; }
+.conf-dim-pill {
+  font-size: .67rem; font-family: var(--mono); padding: 2px 6px; border-radius: 4px;
+  background: var(--panel2); border: 1px solid var(--rule); color: var(--muted);
+  cursor: default; transition: all .3s;
+}
+.conf-dim-pill.good { color: var(--good); border-color: rgba(30,122,74,0.35); background: rgba(30,122,74,0.1); font-weight: 600; }
+.conf-dim-pill.warn { color: var(--warn); border-color: rgba(184,138,0,0.35); background: rgba(184,138,0,0.1); font-weight: 600; }
+.conf-dim-pill.bad  { color: var(--bad); border-color: rgba(197,55,39,0.35); background: rgba(197,55,39,0.1); font-weight: 600; }
 
 /* Output blocks */
 .o-block {
@@ -975,6 +984,11 @@ body { background: var(--bg); color: var(--ink); font-family: var(--sans); font-
         </div>
         <span class="conf-label" id="confLabel">Wide range — answer more to narrow</span>
       </div>
+      <div class="conf-dims" id="confDims">
+        <span id="confDimAff" class="conf-dim-pill" title="Affordability Confidence">Afford: —</span>
+        <span id="confDimPrice" class="conf-dim-pill" title="Pricing Confidence">Pricing: —</span>
+        <span id="confDimRoute" class="conf-dim-pill" title="Routing Confidence">Routing: —</span>
+      </div>
 
       <!-- Verdict -->
       <div class="verdict-strip empty" id="liveVerdict">
@@ -1030,8 +1044,7 @@ body { background: var(--bg); color: var(--ink); font-family: var(--sans); font-
 </div>
 
 <!-- PRINT REPORT CONTAINER (Inputs + Outputs Summary for PDF export) -->
-<div id="printReport" class="print-report" style="display:none"></div>
-
+<script src="rules.js?v=3"></script>
 <script>
 /* ====================================================
    RULES CONFIG — single source of truth
@@ -1259,7 +1272,16 @@ function runEngine(a) {
   const apr = rate.high + (fee * 1.18)/years;
   let lenderMax = pFromEMI(lenderEMI, rate.high, years);
   let safeMax = pFromEMI(safeEMI, rate.high, years);
-  if (hasCol && ltvCap<Infinity) { lenderMax=Math.min(lenderMax,ltvCap); safeMax=Math.min(safeMax,ltvCap); }
+  if (hasCol && ltvCap < Infinity) {
+    if (lenderMax > ltvCap) {
+      lenderMax = ltvCap;
+      lenderEMI = Math.round(emiFromP(lenderMax, rate.high, years));
+    }
+    if (safeMax > ltvCap) {
+      safeMax = ltvCap;
+      safeEMI = Math.round(emiFromP(safeMax, rate.high, years));
+    }
+  }
   const req = a.amount||0;
   let verdict, verdictReason, verdictClass, pathToYes = null;
   if (a.recentBounce && RULES.hardStops.bounceIsStop) {
@@ -1542,6 +1564,10 @@ function buildComputeMessage(r) {
   let msg = `✅ <strong>Here are your four underwriting outputs:</strong>\n\n`;
   const icons = { borrow:'✅', less:'⚠️', no:'🛑' };
   msg += `<strong>O1 — ${icons[r.verdictClass]} ${r.verdict.toUpperCase()}</strong>\n${r.verdictReason}\n\n`;
+  if (r.confidence && r.confidence.dimensions) {
+    const d = r.confidence.dimensions;
+    msg += `📊 <strong>Assessment Confidence:</strong> Affordability: <strong>${d.affordability.level}</strong> · Pricing: <strong>${d.pricing.level}</strong> · Routing: <strong>${d.routing.level}</strong>\n\n`;
+  }
   if (r.pathToYes) {
     msg += `🎯 <strong>Path to Yes:</strong> ${r.pathToYes}\n\n`;
   }
@@ -1591,6 +1617,13 @@ function buildActionsCardHTML() {
             <span class="btn-sub">Open full-screen branch negotiation script & walk-away triggers</span>
           </div>
         </button>
+        <button class="chat-action-btn" style="background:linear-gradient(135deg,#1a4a2e,#0f6b3c);color:#fff;border:none" onclick="promptLenderQuoteCheck()">
+          <span class="btn-icon">🔍</span>
+          <div class="btn-text">
+            <span class="btn-title">Check Lender's Quote</span>
+            <span class="btn-sub">Got a rate from a bank? Enter it — I'll tell you if it's fair, expensive, or unsafe.</span>
+          </div>
+        </button>
         <button class="chat-action-btn tertiary" onclick="startNewBorrowerConvo()">
           <span class="btn-icon">🔄</span>
           <div class="btn-text">
@@ -1601,6 +1634,86 @@ function buildActionsCardHTML() {
       </div>
     </div>
   `;
+}
+
+/* ====================================================
+   LENDER QUOTE COMPARISON
+   Evaluates a lender's quoted rate against our computed fair band.
+   Verdict: Good / Reasonable / Expensive / Very Expensive / Unsafe
+   ==================================================== */
+async function promptLenderQuoteCheck() {
+  const r = runEngine(A);
+  if (!r) return;
+  // Show question in chat
+  await addBotMessage(
+    `🔍 <strong>Lender Quote Check</strong><br>Got an interest rate quoted by a bank or NBFC? Type the <strong>annual interest rate</strong> (e.g. <code>13.5</code> or <code>13.5%</code>) and I'll evaluate whether it's fair, expensive, or unsafe for your profile.`,
+    200
+  );
+  showInputWithPlaceholder('e.g. 13.5 (annual %)', async (rawInput) => {
+    const cleaned = (rawInput || '').replace(/%/g, '').trim();
+    const quotedRate = parseFloat(cleaned);
+    if (isNaN(quotedRate) || quotedRate <= 0 || quotedRate > 60) {
+      await addBotMessage('⚠️ Please enter a valid interest rate between 1% and 60% (e.g. <code>13.5</code>).');
+      return;
+    }
+    const verdict = evaluateLenderQuote(r, quotedRate);
+    await addBotMessage(verdict);
+  });
+}
+
+function evaluateLenderQuote(r, quotedRate) {
+  let ev;
+  if (typeof BorrowerCopilotRules !== 'undefined' && BorrowerCopilotRules.evaluateLenderQuote) {
+    ev = BorrowerCopilotRules.evaluateLenderQuote(r._raw || r, quotedRate);
+  } else {
+    const floorRate  = r.rate.low;
+    const ceilRate   = r.rate.high;
+    const walkAway   = +(r.rate.high + 0.5).toFixed(1);
+    const diff       = +(quotedRate - ceilRate).toFixed(1);
+    const tenureYrs  = r.years || 2;
+    const feePct     = r.fee   || 2.0;
+    const quotedAPR  = +(quotedRate + (feePct * 1.18) / tenureYrs).toFixed(1);
+
+    if (r.verdictClass === 'no') {
+      ev = {
+        icon: '🛑', label: 'UNSAFE — REGARDLESS OF PRICE', quotedRate, quotedAPR, floorRate, ceilingRate: ceilRate, walkAwayRate: walkAway,
+        explanation: `Your assessment verdict is <strong>Don't Borrow</strong>. No rate — however low — makes this loan safe right now. The issue is cash flow or leverage, not the interest rate.`,
+        action: `Focus on the <em>Path to Yes</em> recovery steps before approaching any lender.`
+      };
+    } else if (quotedRate <= floorRate + 1.0) {
+      ev = {
+        icon: '✅', label: 'GOOD OFFER', quotedRate, quotedAPR, floorRate, ceilingRate: ceilRate, walkAwayRate: walkAway,
+        explanation: `${quotedRate.toFixed(1)}% is at or below the fair floor of <strong>${floorRate.toFixed(1)}%</strong> for your profile. This is an excellent rate — within the competitive pricing range.`,
+        action: `Verify the full APR (with processing fee + 18% GST) is ≤ <strong>${(floorRate + (feePct*1.18)/tenureYrs + 0.5).toFixed(1)}%</strong>. If yes, proceed.`
+      };
+    } else if (quotedRate <= ceilRate + 0.5) {
+      ev = {
+        icon: '✔️', label: 'REASONABLE', quotedRate, quotedAPR, floorRate, ceilingRate: ceilRate, walkAwayRate: walkAway,
+        explanation: `${quotedRate.toFixed(1)}% is within the fair range of <strong>${floorRate.toFixed(1)}%–${ceilRate.toFixed(1)}%</strong> for your profile. Acceptable — but negotiate down.`,
+        action: `Push back to target <strong>${floorRate.toFixed(1)}%–${(floorRate+0.5).toFixed(1)}%</strong>. Ask: "My benchmark is ${floorRate.toFixed(1)}%–${ceilRate.toFixed(1)}%. What is your best offer inside this range?"`
+      };
+    } else if (quotedRate <= ceilRate + 2.0) {
+      ev = {
+        icon: '⚠️', label: 'EXPENSIVE', quotedRate, quotedAPR, floorRate, ceilingRate: ceilRate, walkAwayRate: walkAway,
+        explanation: `${quotedRate.toFixed(1)}% is <strong>${diff.toFixed(1)}% above</strong> the fair ceiling of ${ceilRate.toFixed(1)}%. You are paying more than your profile justifies.`,
+        action: `Use the Negotiation Card. Walk away if rate stays above <strong>${walkAway.toFixed(1)}%</strong>. Try another lender — rates of ${floorRate.toFixed(1)}%–${ceilRate.toFixed(1)}% are achievable for your profile.`
+      };
+    } else {
+      ev = {
+        icon: '🚨', label: 'VERY EXPENSIVE — AVOID', quotedRate, quotedAPR, floorRate, ceilingRate: ceilRate, walkAwayRate: walkAway,
+        explanation: `${quotedRate.toFixed(1)}% is <strong>${diff.toFixed(1)}% above</strong> fair ceiling. All-in APR will be ~<strong>${quotedAPR}%</strong>. This lender is pricing you as high-risk regardless of your actual profile.`,
+        action: `<strong>Do not accept this offer.</strong> Approach a different bank or NBFC. Show them your Negotiation Card — your walk-away ceiling is <strong>${walkAway.toFixed(1)}%</strong>.`
+      };
+    }
+  }
+
+  return `
+<strong>🏦 Lender Quote Assessment</strong><br>
+<span style="font-size:1.05em;font-weight:700">${ev.icon} ${ev.label}</span><br><br>
+<strong>Quoted Rate:</strong> ${ev.quotedRate.toFixed(1)}% (Estimated all-in APR: ~${ev.quotedAPR}%)<br>
+<strong>Your Fair Band:</strong> ${ev.floorRate.toFixed(1)}% – ${ev.ceilingRate.toFixed(1)}% | Walk-Away Above: ${ev.walkAwayRate.toFixed(1)}%<br><br>
+${ev.explanation}<br><br>
+<strong>What to do:</strong> ${ev.action}`;
 }
 
 /* ====================================================
@@ -1731,6 +1844,30 @@ function setInputMode(q) {
   }
 }
 
+/* ===== POST-ASSESSMENT & CUSTOM INPUT HANDLERS ===== */
+let activeInputCallback = null;
+
+function showInputWithPlaceholder(placeholder, callback) {
+  choicesEl.innerHTML = '';
+  inputEl.value = '';
+  inputEl.type = 'text';
+  inputEl.style.display = '';
+  inputEl.placeholder = placeholder;
+  sendBtn.disabled = false;
+  activeInputCallback = callback;
+  setTimeout(() => inputEl.focus(), 100);
+}
+
+function enablePostAssessmentInput() {
+  choicesEl.innerHTML = '';
+  inputEl.value = '';
+  inputEl.type = 'text';
+  inputEl.style.display = '';
+  inputEl.placeholder = 'Ask any question (e.g. "What is FOIR?", "How to improve?") or type a new loan…';
+  sendBtn.disabled = false;
+  activeInputCallback = null;
+}
+
 /* ===== CHAT NAVIGATION HISTORY STACK ===== */
 let questionHistory = [];
 
@@ -1812,6 +1949,19 @@ async function askQuestion(q) {
 
 async function handleUserInput(display, rawVal) {
   if (isTyping) return;
+
+  if (activeInputCallback) {
+    const text = (display || inputEl.value || '').trim();
+    if (!text) return;
+    const cb = activeInputCallback;
+    activeInputCallback = null;
+    addUserMessage(text);
+    inputEl.value = '';
+    setInputMode(null);
+    await cb(text);
+    enablePostAssessmentInput();
+    return;
+  }
 
   if (done) {
     const text = (display || '').trim();
@@ -2057,6 +2207,22 @@ function openNegModal() {
       <strong>🛡️ Borrower Protection Rule:</strong> Lender sanction capacity is not the same as safe borrowing capacity. Never allow lender sanction limits to increase your borrowing amount beyond your safe ceiling.
     </div>
 
+    <div class="modal-section-title">Underwriting Confidence & Evidence Level</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:.5rem;margin-bottom:.85rem">
+      <div style="background:var(--panel2);border:1px solid var(--rule);padding:.55rem .75rem;border-radius:6px;font-size:.82rem">
+        <strong>Affordability:</strong> <span style="font-weight:700;color:var(--good)">${r.confidence?.dimensions?.affordability?.level || 'HIGH'}</span><br>
+        <span style="font-size:.72rem;color:var(--muted)">${r.confidence?.dimensions?.affordability?.reason || 'Documented income & detailed living expenses'}</span>
+      </div>
+      <div style="background:var(--panel2);border:1px solid var(--rule);padding:.55rem .75rem;border-radius:6px;font-size:.82rem">
+        <strong>Pricing Accuracy:</strong> <span style="font-weight:700;color:var(--good)">${r.confidence?.dimensions?.pricing?.level || 'HIGH'}</span><br>
+        <span style="font-size:.72rem;color:var(--muted)">${r.confidence?.dimensions?.pricing?.reason || 'Credit score known / asset-backed pricing'}</span>
+      </div>
+      <div style="background:var(--panel2);border:1px solid var(--rule);padding:.55rem .75rem;border-radius:6px;font-size:.82rem">
+        <strong>Product Routing:</strong> <span style="font-weight:700;color:var(--good)">${r.confidence?.dimensions?.routing?.level || 'HIGH'}</span><br>
+        <span style="font-size:.72rem;color:var(--muted)">${r.confidence?.dimensions?.routing?.reason || 'Statutory LTV & standard product parameters'}</span>
+      </div>
+    </div>
+
     <div class="modal-section-title">Macroeconomic Stress Test Audit</div>
     <div style="display:flex;flex-direction:column;gap:.4rem;margin-bottom:.85rem">
       <div style="background:var(--panel2);border:1px solid var(--rule);padding:.55rem .75rem;border-radius:6px;font-size:.82rem">
@@ -2254,6 +2420,14 @@ function buildPrintReport(a, r) {
       </td>
     </tr>
     <tr>
+      <th>Assessment Confidence</th>
+      <td colspan="3">
+        • <strong>Affordability Confidence:</strong> <strong>${r.confidence?.dimensions?.affordability?.level || 'HIGH'}</strong> — ${r.confidence?.dimensions?.affordability?.reason || 'Verified income & declared expenses'}<br>
+        • <strong>Pricing Accuracy Confidence:</strong> <strong>${r.confidence?.dimensions?.pricing?.level || 'HIGH'}</strong> — ${r.confidence?.dimensions?.pricing?.reason || 'Known bureau score / secured pricing'}<br>
+        • <strong>Product Routing Confidence:</strong> <strong>${r.confidence?.dimensions?.routing?.level || 'HIGH'}</strong> — ${r.confidence?.dimensions?.routing?.reason || 'Statutory LTV & standard loan parameters'}
+      </td>
+    </tr>
+    <tr>
       <th>Underwriting Sanity Verification</th>
       <td colspan="3" style="font-size:8pt;color:#1A6B3E;background:#F2FAF5">
         ✓ <strong>Automated Underwriting Consistency Engine:</strong> 12 of 12 mathematical checks verified passing (PV annuity formula circular check, existing debt and living expenses incorporation, cash-flow APR IRR verification, stress shock strict monotonicity).
@@ -2372,6 +2546,34 @@ function updateLivePanel() {
   bars.forEach((b,i) => { b.className='conf-bar'; if(i<filled) b.classList.add(sigs.color); });
   document.getElementById('confLabel').textContent = sigs.label;
 
+  // Multi-dimensional confidence pills
+  const affEl = document.getElementById('confDimAff');
+  const priceEl = document.getElementById('confDimPrice');
+  const routeEl = document.getElementById('confDimRoute');
+  if (r && r.confidence && r.confidence.dimensions) {
+    const d = r.confidence.dimensions;
+    const cls = lvl => lvl === 'HIGH' ? 'good' : (lvl === 'MEDIUM' ? 'warn' : 'bad');
+    if (affEl) {
+      affEl.className = `conf-dim-pill ${cls(d.affordability.level)}`;
+      affEl.textContent = `Afford: ${d.affordability.level}`;
+      affEl.title = d.affordability.reason;
+    }
+    if (priceEl) {
+      priceEl.className = `conf-dim-pill ${cls(d.pricing.level)}`;
+      priceEl.textContent = `Pricing: ${d.pricing.level}`;
+      priceEl.title = d.pricing.reason;
+    }
+    if (routeEl) {
+      routeEl.className = `conf-dim-pill ${cls(d.routing.level)}`;
+      routeEl.textContent = `Routing: ${d.routing.level}`;
+      routeEl.title = d.routing.reason;
+    }
+  } else {
+    if (affEl) { affEl.className = 'conf-dim-pill'; affEl.textContent = 'Afford: —'; affEl.title = ''; }
+    if (priceEl) { priceEl.className = 'conf-dim-pill'; priceEl.textContent = 'Pricing: —'; priceEl.title = ''; }
+    if (routeEl) { routeEl.className = 'conf-dim-pill'; routeEl.textContent = 'Routing: —'; routeEl.title = ''; }
+  }
+
   if (!r) {
     document.getElementById('liveStatus').textContent = 'Waiting for answers…';
     return;
@@ -2440,6 +2642,13 @@ function renderNegCard() {
       <div class="neg-line"><b>🛑 Do Not Cross:</b> ${fmtINR(r.safeEMI)}/mo EMI ceiling.</div>
       <div class="neg-line"><b>💰 Post-Loan Cash:</b> ${fmtINR(postCF)}/mo buffer remaining.</div>
       ${r.secured ? `<div class="neg-line"><b>🏢 Collateral:</b> ${A.collateralType || 'property'} valued at ~${fmtINR(A.collateralValue || 4500000)} — insist on secured rate card.</div>` : ''}
+      ${r.confidence && r.confidence.dimensions ? `
+        <div class="neg-line" style="margin-top:.4rem;display:flex;gap:5px;flex-wrap:wrap">
+          <span style="font-size:.7rem;padding:2px 6px;border-radius:4px;background:var(--panel2);border:1px solid var(--rule)">Afford: <b>${r.confidence.dimensions.affordability.level}</b></span>
+          <span style="font-size:.7rem;padding:2px 6px;border-radius:4px;background:var(--panel2);border:1px solid var(--rule)">Pricing: <b>${r.confidence.dimensions.pricing.level}</b></span>
+          <span style="font-size:.7rem;padding:2px 6px;border-radius:4px;background:var(--panel2);border:1px solid var(--rule)">Routing: <b>${r.confidence.dimensions.routing.level}</b></span>
+        </div>
+      ` : ''}
       <div class="neg-line" style="margin-top:.4rem;font-size:.76rem;opacity:.88">
         <b>What to Ask:</b> "What is your best rate inside ${fmtPct(r.rate.low)}–${fmtPct(r.rate.high)}% and what is the effective APR with GST?"
       </div>`;

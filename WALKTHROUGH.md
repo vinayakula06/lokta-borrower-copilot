@@ -12,7 +12,7 @@ For a reviewer evaluating this repository:
 ```
 Step 1: Run the Automated CLI Test Suite (Time: 5 seconds)
 $ node test_engine.js
-Observe 44 unit tests verifying financial math, all three personas, true Cash-Flow IRR APR, 12-check automated consistency validator, and the Section 15 regression test case.
+Observe 54 unit tests + 1,000 property-based invariant checks verifying financial math, all three personas, true Cash-Flow IRR APR, multi-dimensional confidence, interactive lender quote evaluation, 12-check automated consistency validator, and regression test cases in < 1 second.
 
 Step 2: Open the Flagship Application (Time: 30 seconds)
 Open index.html (or borrower_copilot_chat.html) directly in any modern browser.
@@ -23,9 +23,10 @@ Click "Priya · Salaried" → Observe prime personal loan pricing (10.5%–13.0%
 Click "Ravi · Self-employed" → Observe product routing to secured LAP (9.5%–12.5%), cash haircut, and BORROW LESS recommendation.
 Click "Anita · Informal" → Observe DONT BORROW verdict, bounce hard-stop, app loan amortization, and the constructive "Path to Yes".
 
-Step 4: Inspect the Negotiation Card & Q&A Mode (Time: 1.5 minutes)
+Step 4: Inspect Negotiation Card, Lender Quote Check & Q&A Mode (Time: 1.5 minutes)
+Click "🔍 Check Lender's Quote" → Type "14.5" → Observe instant evaluation (EXPENSIVE warning, walk-away rate 13.5%, and counter-script).
 Click "📋 Copy" → Observe 14-section formatted clipboard text ready for a branch meeting.
-Click "🔍 Expand" → Opens the full Negotiation Card modal with 8 core targets, 3-part stress test, lender sanction basis, and 12-check validation badge.
+Click "🔍 Expand" → Opens the full Negotiation Card modal with 8 core targets, 3-part stress test, multi-dimensional confidence levels, lender sanction basis, and 12-check validation badge.
 Switch to "💬 Ask Anything" tab → Ask "What is FOIR?" or "Can I borrow with a low credit score?" → Observe answers referencing live profile numbers.
 
 Step 5: Inspect Domain Code & RULES.md (Time: 1 minute)
