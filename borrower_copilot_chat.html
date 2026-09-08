@@ -42,39 +42,39 @@ html { height: 100%; }
 body { background: var(--bg); color: var(--ink); font-family: var(--sans); font-size: 15px; line-height: 1.55; height: 100%; transition: background var(--t), color var(--t); }
 
 /* ===== APP SHELL ===== */
-.app { display: grid; grid-template-columns: 1fr 400px; grid-template-rows: 56px 1fr; height: 100vh; max-width: 1360px; margin: 0 auto; }
-@media(max-width:960px) { .app { grid-template-columns: 1fr 360px; } }
-@media(max-width:820px) { .app { grid-template-columns: 1fr; grid-template-rows: 52px auto auto; height: auto; min-height: 100vh; } }
+.app { display: grid; grid-template-columns: 1fr 440px; grid-template-rows: 60px 1fr; height: 100vh; max-width: 1440px; margin: 0 auto; }
+@media(max-width:1040px) { .app { grid-template-columns: 1fr 390px; } }
+@media(max-width:820px) { .app { grid-template-columns: 1fr; grid-template-rows: 56px auto auto; height: auto; min-height: 100vh; } }
 
 /* ===== TOPBAR ===== */
 .topbar {
   grid-column: 1 / -1;
   display: flex; align-items: center; justify-content: space-between;
-  padding: 0 1.25rem;
+  padding: 0 1.5rem;
   background: var(--panel); border-bottom: 1px solid var(--rule);
   box-shadow: var(--shadow);
 }
-.topbar-brand { display: flex; align-items: center; gap: .65rem; }
+.topbar-brand { display: flex; align-items: center; gap: .75rem; }
 .topbar-logo {
-  width: 30px; height: 30px; border-radius: 8px;
+  width: 34px; height: 34px; border-radius: 9px;
   background: linear-gradient(135deg, var(--accent), var(--accent-l));
   display: flex; align-items: center; justify-content: center;
-  font-size: 1rem; color: #fff; flex-shrink: 0;
+  font-size: 1.05rem; color: #fff; flex-shrink: 0;
 }
-.topbar-name { font-family: var(--display); font-size: 1.1rem; font-weight: 600; }
+.topbar-name { font-family: var(--display); font-size: 1.15rem; font-weight: 600; }
 .topbar-name em { font-style: italic; color: var(--accent); }
-.brand-lokta { font-family: var(--sans); font-weight: 800; font-size: 1.15rem; color: var(--accent); letter-spacing: -0.02em; }
+.brand-lokta { font-family: var(--sans); font-weight: 800; font-size: 1.2rem; color: var(--accent); letter-spacing: -0.02em; }
 .topbar-pill {
-  font-size: .65rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+  font-size: .66rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
   background: var(--accent-soft); color: var(--accent);
-  padding: .18rem .55rem; border-radius: 99px; margin-left: .4rem;
+  padding: .2rem .6rem; border-radius: 99px; margin-left: .5rem;
 }
-.topbar-actions { display: flex; gap: .4rem; }
+.topbar-actions { display: flex; gap: .5rem; }
 .icon-btn {
-  width: 32px; height: 32px; border: 1px solid var(--rule);
+  width: 34px; height: 34px; border: 1px solid var(--rule);
   background: none; border-radius: 8px;
   display: flex; align-items: center; justify-content: center;
-  cursor: pointer; font-size: .95rem; color: var(--muted);
+  cursor: pointer; font-size: 1rem; color: var(--muted);
   transition: all var(--t);
 }
 .icon-btn:hover { background: var(--panel2); color: var(--ink); }
@@ -88,27 +88,27 @@ body { background: var(--bg); color: var(--ink); font-family: var(--sans); font-
 @media(max-width:820px) { .chat-panel { border-right: none; border-bottom: 1px solid var(--rule); min-height: 55vh; } }
 
 .chat-messages {
-  flex: 1; overflow-y: auto; padding: 1.25rem 1rem;
-  display: flex; flex-direction: column; gap: .7rem;
+  flex: 1; overflow-y: auto; padding: 1.5rem 1.4rem;
+  display: flex; flex-direction: column; gap: 1.1rem;
   scroll-behavior: smooth;
 }
 .chat-messages::-webkit-scrollbar { width: 4px; }
 .chat-messages::-webkit-scrollbar-thumb { background: var(--rule); border-radius: 99px; }
 
 /* ===== BUBBLES ===== */
-.msg { display: flex; gap: .55rem; align-items: flex-end; animation: msgIn .22s ease forwards; }
+.msg { display: flex; gap: .7rem; align-items: flex-end; animation: msgIn .22s ease forwards; }
 @keyframes msgIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
 .msg.bot { flex-direction: row; }
 .msg.user { flex-direction: row-reverse; }
 .msg-avatar {
-  width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0;
+  width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
-  font-size: .85rem; background: var(--accent); color: #fff;
+  font-size: .9rem; background: var(--accent); color: #fff;
 }
 .msg.user .msg-avatar { background: var(--panel2); }
 .bubble {
-  max-width: 82%; padding: .65rem .9rem;
-  line-height: 1.5; font-size: .9rem; border-radius: var(--radius);
+  max-width: 84%; padding: .8rem 1.15rem;
+  line-height: 1.6; font-size: .92rem; border-radius: 14px;
 }
 .msg.bot .bubble {
   background: var(--bot-bg); color: var(--ink);
@@ -143,7 +143,7 @@ body { background: var(--bg); color: var(--ink); font-family: var(--sans); font-
 /* ===== INPUT AREA ===== */
 .chat-input-area {
   border-top: 1px solid var(--rule); background: var(--panel);
-  padding: .75rem 1rem;
+  padding: .95rem 1.4rem;
 }
 
 /* ===== CHAT NAVIGATION BAR ===== */
@@ -151,23 +151,23 @@ body { background: var(--bg); color: var(--ink); font-family: var(--sans); font-
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: .4rem;
-  margin-bottom: .5rem;
-  padding-bottom: .4rem;
+  gap: .5rem;
+  margin-bottom: .65rem;
+  padding-bottom: .55rem;
   border-bottom: 1px dashed var(--rule);
 }
 .nav-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: .3rem;
-  padding: .3rem .75rem;
+  gap: .35rem;
+  padding: .35rem .85rem;
   border-radius: 99px;
   border: 1px solid var(--rule);
   background: var(--panel2);
   color: var(--ink2);
   font-family: var(--sans);
-  font-size: .78rem;
+  font-size: .8rem;
   font-weight: 600;
   cursor: pointer;
   transition: all var(--t);
@@ -198,11 +198,11 @@ body { background: var(--bg); color: var(--ink); font-family: var(--sans); font-
   color: #fff;
   border-color: var(--accent);
 }
-.input-choices { display: flex; flex-wrap: wrap; gap: .4rem; margin-bottom: .55rem; }
+.input-choices { display: flex; flex-wrap: wrap; gap: .55rem; margin-bottom: .75rem; }
 .choice-btn {
-  padding: .42rem .9rem; border: 1.5px solid var(--accent);
+  padding: .48rem 1.05rem; border: 1.5px solid var(--accent);
   background: var(--accent-softer); color: var(--accent);
-  border-radius: 99px; font-family: var(--sans); font-size: .84rem; font-weight: 600;
+  border-radius: 99px; font-family: var(--sans); font-size: .86rem; font-weight: 600;
   cursor: pointer; transition: all var(--t);
 }
 .choice-btn:hover { background: var(--accent); color: #fff; }
@@ -217,21 +217,21 @@ body { background: var(--bg); color: var(--ink); font-family: var(--sans); font-
   color: var(--accent);
   background: var(--accent-softer);
 }
-.input-row { display: flex; gap: .5rem; }
+.input-row { display: flex; gap: .6rem; }
 .chat-input {
-  flex: 1; padding: .6rem .85rem;
+  flex: 1; padding: .68rem 1.05rem;
   border: 1.5px solid var(--rule); border-radius: 99px;
   background: var(--panel2); color: var(--ink);
-  font-family: var(--sans); font-size: .9rem;
+  font-family: var(--sans); font-size: .92rem;
   transition: border-color var(--t);
 }
 .chat-input:focus { outline: none; border-color: var(--accent); }
 .chat-input::placeholder { color: var(--muted); }
 .send-btn {
-  width: 38px; height: 38px; border-radius: 50%;
+  width: 42px; height: 42px; border-radius: 50%;
   background: var(--accent); color: #fff; border: none;
   display: flex; align-items: center; justify-content: center;
-  cursor: pointer; transition: all var(--t); font-size: 1rem;
+  cursor: pointer; transition: all var(--t); font-size: 1.05rem;
   flex-shrink: 0;
 }
 .send-btn:hover { background: var(--accent-l); transform: scale(1.05); }
@@ -246,26 +246,26 @@ body { background: var(--bg); color: var(--ink); font-family: var(--sans); font-
 .live-panel::-webkit-scrollbar { width: 4px; }
 .live-panel::-webkit-scrollbar-thumb { background: var(--rule); border-radius: 99px; }
 .live-header {
-  padding: .9rem 1.1rem .6rem;
+  padding: 1.15rem 1.4rem .9rem;
   border-bottom: 1px solid var(--rule);
-  font-size: .72rem; font-weight: 700; letter-spacing: .1em;
+  font-size: .74rem; font-weight: 700; letter-spacing: .1em;
   text-transform: uppercase; color: var(--muted);
   display: flex; justify-content: space-between; align-items: center;
   position: sticky; top: 0; background: var(--panel); z-index: 1;
 }
-.live-body { padding: .85rem 1.1rem; display: flex; flex-direction: column; gap: .75rem; }
+.live-body { padding: 1.2rem 1.4rem; display: flex; flex-direction: column; gap: 1.1rem; }
 
 /* Confidence */
-.conf-strip { display: flex; align-items: center; gap: .55rem; }
-.conf-bars { display: flex; gap: 3px; }
-.conf-bar { width: 5px; height: 18px; border-radius: 3px; background: var(--rule); transition: background .35s; }
+.conf-strip { display: flex; align-items: center; gap: .65rem; margin-bottom: .2rem; }
+.conf-bars { display: flex; gap: 4px; }
+.conf-bar { width: 6px; height: 20px; border-radius: 3px; background: var(--rule); transition: background .35s; }
 .conf-bar.good { background: var(--good); }
 .conf-bar.warn { background: var(--warn); }
 .conf-bar.bad  { background: var(--bad); }
-.conf-label { font-size: .78rem; color: var(--muted); font-weight: 600; }
-.conf-dims { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 3px; }
+.conf-label { font-size: .8rem; color: var(--muted); font-weight: 600; }
+.conf-dims { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
 .conf-dim-pill {
-  font-size: .67rem; font-family: var(--mono); padding: 2px 7px; border-radius: 4px;
+  font-size: .68rem; font-family: var(--mono); padding: 3px 8px; border-radius: 5px;
   background: var(--panel2); border: 1px solid var(--rule); color: var(--muted);
   cursor: default; transition: all .3s; font-weight: 600;
 }
@@ -275,53 +275,53 @@ body { background: var(--bg); color: var(--ink); font-family: var(--sans); font-
 
 /* Output blocks */
 .o-block {
-  border: 1px solid var(--rule); border-radius: var(--radius-sm);
-  padding: .75rem .85rem; background: var(--panel2);
+  border: 1px solid var(--rule); border-radius: 12px;
+  padding: 1rem 1.15rem; background: var(--panel2);
   transition: all .3s;
 }
 .o-block.lit { background: var(--panel); box-shadow: var(--shadow); }
 .o-key {
-  font-family: var(--mono); font-size: .65rem; font-weight: 500;
+  font-family: var(--mono); font-size: .67rem; font-weight: 600;
   color: var(--accent); letter-spacing: .08em; text-transform: uppercase;
-  margin-bottom: .35rem;
+  margin-bottom: .45rem;
 }
 .o-val {
-  font-family: var(--mono); font-size: 1rem; font-weight: 600;
-  color: var(--ink); line-height: 1.2; margin-bottom: .2rem;
+  font-family: var(--mono); font-size: 1.06rem; font-weight: 600;
+  color: var(--ink); line-height: 1.3; margin-bottom: .3rem;
 }
-.o-val2 { font-family: var(--mono); font-size: .9rem; font-weight: 500; color: var(--accent); margin-bottom: .2rem; }
-.o-why { font-size: .76rem; color: var(--muted); line-height: 1.45; }
-.o-placeholder { font-size: .82rem; color: var(--muted); font-style: italic; }
+.o-val2 { font-family: var(--mono); font-size: .92rem; font-weight: 500; color: var(--accent); margin-bottom: .25rem; }
+.o-why { font-size: .78rem; color: var(--muted); line-height: 1.55; margin-top: .35rem; }
+.o-placeholder { font-size: .84rem; color: var(--muted); font-style: italic; }
 .verdict-strip {
-  padding: .65rem .85rem; border-radius: var(--radius-sm);
-  font-weight: 700; font-size: .95rem; display: flex; align-items: center; gap: .5rem;
+  padding: .85rem 1.15rem; border-radius: 10px;
+  font-weight: 700; font-size: 1rem; display: flex; align-items: center; gap: .6rem;
 }
 .verdict-strip.borrow { background: var(--good-soft); color: var(--good); }
 .verdict-strip.less   { background: var(--warn-soft); color: var(--warn); }
 .verdict-strip.no     { background: var(--bad-soft);  color: var(--bad); }
 .verdict-strip.empty  { background: var(--panel2); color: var(--muted); }
-.verdict-reason { font-size: .78rem; font-weight: 400; margin-top: .25rem; color: var(--ink2); line-height: 1.4; }
+.verdict-reason { font-size: .82rem; font-weight: 400; margin-top: .35rem; color: var(--ink2); line-height: 1.5; }
 
 /* Neg card */
 .neg-mini {
-  border-radius: var(--radius-sm); overflow: hidden;
+  border-radius: 14px; overflow: hidden;
   box-shadow: var(--shadow-lg);
 }
 .neg-mini-body {
   background: linear-gradient(135deg, var(--accent) 0%, #3D1E38 100%);
-  color: #fff; padding: 1rem;
+  color: #fff; padding: 1.25rem 1.35rem;
 }
-.neg-mini-title { font-family: var(--display); font-size: 1rem; font-weight: 600; margin-bottom: .6rem; }
-.neg-line { font-size: .82rem; line-height: 1.5; margin-bottom: .35rem; opacity: .95; }
+.neg-mini-title { font-family: var(--display); font-size: 1.05rem; font-weight: 600; margin-bottom: .8rem; }
+.neg-line { font-size: .84rem; line-height: 1.65; margin-bottom: .45rem; opacity: .95; }
 .neg-line b { font-weight: 700; }
 
 /* Confidence badges inside dark negotiation card */
 .neg-conf-badges {
-  display: flex; gap: 6px; flex-wrap: wrap; margin-top: .45rem; margin-bottom: .3rem;
+  display: flex; gap: 7px; flex-wrap: wrap; margin-top: .65rem; margin-bottom: .55rem;
 }
 .neg-conf-badge {
   display: inline-flex; align-items: center; gap: 4px;
-  font-size: .69rem; font-family: var(--mono); padding: 3px 8px;
+  font-size: .7rem; font-family: var(--mono); padding: 3px 9px;
   border-radius: 5px; background: rgba(0,0,0,0.4);
   border: 1px solid rgba(255,255,255,0.22); color: #FFFFFF;
   letter-spacing: .02em; line-height: 1.2;
@@ -351,14 +351,14 @@ body { background: var(--bg); color: var(--ink); font-family: var(--sans); font-
   color: #F87171; font-weight: 700;
 }
 .neg-footer-mini {
-  background: rgba(0,0,0,0.25); padding: .5rem 1rem;
-  font-size: .7rem; opacity: .7; font-style: italic;
+  background: rgba(0,0,0,0.25); padding: .6rem 1.25rem;
+  font-size: .72rem; opacity: .75; font-style: italic;
 }
-.neg-actions { display: flex; gap: .4rem; padding: .7rem 1rem; background: rgba(0,0,0,.18); }
+.neg-actions { display: flex; gap: .55rem; padding: .85rem 1.2rem; background: rgba(0,0,0,.18); }
 .neg-print-btn, .neg-copy-btn {
-  flex: 1; padding: .5rem; font-size: .8rem; font-weight: 700;
+  flex: 1; padding: .62rem; font-size: .82rem; font-weight: 700;
   background: rgba(255,255,255,.18); color: #fff;
-  border: 1px solid rgba(255,255,255,.3); border-radius: 6px;
+  border: 1px solid rgba(255,255,255,.3); border-radius: 8px;
   cursor: pointer; font-family: var(--sans); text-align: center;
   transition: all var(--t);
 }
@@ -403,24 +403,24 @@ body { background: var(--bg); color: var(--ink); font-family: var(--sans); font-
   background: var(--panel); flex-shrink: 0;
 }
 .mode-tab {
-  flex: 1; padding: .65rem .5rem; font-family: var(--sans);
-  font-size: .82rem; font-weight: 600; cursor: pointer;
+  flex: 1; padding: .75rem .6rem; font-family: var(--sans);
+  font-size: .84rem; font-weight: 600; cursor: pointer;
   border: none; background: none; color: var(--muted);
   border-bottom: 2.5px solid transparent; margin-bottom: -1px;
   transition: all var(--t); display: flex; align-items: center;
-  justify-content: center; gap: .35rem;
+  justify-content: center; gap: .4rem;
 }
 .mode-tab:hover { color: var(--ink); }
 .mode-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
 
 /* ===== PERSONA BAR ===== */
-.persona-bar-wrap { padding: .6rem 1rem; border-top: 1px solid var(--rule); background: var(--panel2); }
-.persona-bar-label { font-size: .68rem; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: .4rem; }
-.persona-pills { display: flex; gap: .35rem; flex-wrap: wrap; }
+.persona-bar-wrap { padding: .75rem 1.4rem; border-top: 1px solid var(--rule); background: var(--panel2); }
+.persona-bar-label { font-size: .68rem; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: .45rem; }
+.persona-pills { display: flex; gap: .5rem; flex-wrap: wrap; }
 .persona-pill {
-  padding: .3rem .75rem; border: 1.5px solid var(--rule);
+  padding: .35rem .85rem; border: 1.5px solid var(--rule);
   background: var(--panel); border-radius: 99px;
-  font-family: var(--sans); font-size: .78rem; font-weight: 600;
+  font-family: var(--sans); font-size: .8rem; font-weight: 600;
   color: var(--ink2); cursor: pointer; transition: all var(--t);
 }
 .persona-pill:hover { border-color: var(--accent); color: var(--accent); }
@@ -507,18 +507,18 @@ body { background: var(--bg); color: var(--ink); font-family: var(--sans); font-
 
 /* ===== IN-CHAT ACTIONS CARD ===== */
 .chat-actions-card {
-  margin-top: .75rem;
+  margin-top: 1.15rem;
   background: var(--panel);
   border: 1.5px solid var(--accent);
-  border-radius: var(--radius);
-  padding: .9rem 1rem;
+  border-radius: 14px;
+  padding: 1.2rem 1.35rem;
   box-shadow: var(--shadow);
 }
 .chat-actions-header {
   display: flex;
   align-items: center;
-  gap: .5rem;
-  margin-bottom: .35rem;
+  gap: .55rem;
+  margin-bottom: .45rem;
 }
 .chat-actions-badge {
   font-size: .68rem;
@@ -527,31 +527,31 @@ body { background: var(--bg); color: var(--ink); font-family: var(--sans); font-
   text-transform: uppercase;
   background: var(--accent-soft);
   color: var(--accent);
-  padding: .15rem .45rem;
+  padding: .18rem .55rem;
   border-radius: 4px;
 }
 .chat-actions-title {
-  font-size: .92rem;
+  font-size: .95rem;
   font-weight: 700;
   color: var(--ink);
 }
 .chat-actions-desc {
-  font-size: .8rem;
+  font-size: .82rem;
   color: var(--muted);
-  margin-bottom: .75rem;
-  line-height: 1.4;
+  margin-bottom: .9rem;
+  line-height: 1.48;
 }
 .chat-actions-grid {
   display: flex;
   flex-direction: column;
-  gap: .45rem;
+  gap: .65rem;
 }
 .chat-action-btn {
   display: flex;
   align-items: center;
-  gap: .75rem;
-  padding: .65rem .85rem;
-  border-radius: 8px;
+  gap: .85rem;
+  padding: .75rem 1.05rem;
+  border-radius: 10px;
   border: 1.5px solid var(--rule);
   background: var(--panel2);
   color: var(--ink);
@@ -1616,36 +1616,33 @@ function loanTypeName(t) {
    ==================================================== */
 function buildComputeMessage(r) {
   if (!r) return 'Something went wrong — I couldn\'t compute with the answers so far.';
-  let msg = `✅ <strong>Here are your four underwriting outputs:</strong>\n\n`;
   const icons = { borrow:'✅', less:'⚠️', no:'🛑' };
-  msg += `<strong>O1 — ${icons[r.verdictClass]} ${r.verdict.toUpperCase()}</strong>\n${r.verdictReason}\n\n`;
-  if (r.confidence && r.confidence.dimensions) {
-    const d = r.confidence.dimensions;
-    msg += `📊 <strong>Assessment Confidence:</strong> Affordability: <strong>${d.affordability.level}</strong> · Pricing: <strong>${d.pricing.level}</strong> · Routing: <strong>${d.routing.level}</strong>\n\n`;
-  }
-  if (r.pathToYes) {
-    msg += `🎯 <strong>Path to Yes:</strong> ${r.pathToYes}\n\n`;
-  }
-  msg += `<strong>O2 — Sizing Capacities</strong>\n`;
-  msg += `• Safe Borrower Ceiling: <strong>${fmtINR(r.safeMax)}</strong> ← <em>USE THIS CEILING</em>\n`;
-  msg += `• Lender Sanction Limit: <strong>${fmtINR(r.lenderMax)}</strong>\n`;
-  msg += `<em>Important: Lender sanction capacity is not the same as safe borrowing capacity. Lenders evaluate only gross FOIR, ignoring essential living expenses and safety reserves.</em>\n\n`;
-  msg += `<strong>O3 — Fair Rate Band & All-in APR</strong>\n`;
-  msg += `• Fair Rate: <strong>${fmtPct(r.rate.low)} – ${fmtPct(r.rate.high)}</strong> (Basis: ${r.rate.reason})\n`;
-  msg += `• All-in APR: <strong>~${fmtPct(r.apr)}</strong> (Calculated via cash-flow IRR on net disbursement)\n\n`;
-  msg += `<strong>O4 — EMI Affordability & Cash Flow</strong>\n`;
-  msg += `• Safe EMI Limit: <strong>${fmtINR(r.safeEMI)}/month</strong> over ${r.tenureMonths || Math.round(r.years * 12)} months\n`;
-  if (r.actualEMI > 0) {
-    msg += `• Requested Loan EMI: <strong>${fmtINR(r.actualEMI)}/month</strong>\n`;
-  }
-  if (r.postLoanCashFlow !== undefined) {
-    msg += `• Post-Loan Monthly Cash Flow: <strong>${fmtINR(r.postLoanCashFlow)}/month</strong>\n`;
-  }
-  msg += `• Stress Testing: Income −20% → safe EMI drops to ${fmtINR(r.stressSafeEMI)}/mo`;
-  if (r.stressRateEMI > 0) {
-    msg += `; Rate +2.0% → EMI on ask becomes ${fmtINR(r.stressRateEMI)}/mo`;
-  }
-  msg += `.\n\nYour <strong>Negotiation Card</strong> is displayed on the right →`;
+  let msg = `<div style="font-size:1.02rem;font-weight:700;margin-bottom:.85rem;color:var(--ink)">✅ Underwriting Assessment Ready:</div>` +
+    `<div style="background:var(--panel2);border:1.5px solid var(--rule);border-radius:10px;padding:.85rem 1.05rem;margin-bottom:.85rem">` +
+      `<div style="font-size:.95rem;font-weight:700;margin-bottom:.35rem;color:var(--ink)">O1 — ${icons[r.verdictClass]} ${r.verdict.toUpperCase()}</div>` +
+      `<div style="font-size:.85rem;line-height:1.52;color:var(--ink2)">${r.verdictReason}</div>` +
+      (r.pathToYes ? `<div style="margin-top:.6rem;padding:.5rem .75rem;background:var(--panel);border-left:3px solid var(--warn);border-radius:4px;font-size:.82rem;line-height:1.45"><strong style="color:var(--warn)">🎯 Path to Yes:</strong> ${r.pathToYes}</div>` : '') +
+    `</div>` +
+    (r.confidence && r.confidence.dimensions ? `<div style="background:var(--panel2);border:1px solid var(--rule);border-radius:8px;padding:.65rem .95rem;margin-bottom:.85rem;font-size:.82rem;line-height:1.5">📊 <strong>Assessment Confidence:</strong> Affordability: <strong>${r.confidence.dimensions.affordability.level}</strong> · Pricing: <strong>${r.confidence.dimensions.pricing.level}</strong> · Routing: <strong>${r.confidence.dimensions.routing.level}</strong></div>` : '') +
+    `<div style="background:var(--panel2);border:1px solid var(--rule);border-radius:10px;padding:.85rem 1.05rem;margin-bottom:.85rem;font-size:.85rem;line-height:1.55">` +
+      `<strong style="color:var(--accent);text-transform:uppercase;font-size:.7rem;letter-spacing:.08em;font-family:var(--mono);display:block;margin-bottom:.35rem">O2 · Sizing Capacities</strong>` +
+      `• Safe Borrower Ceiling: <strong>${fmtINR(r.safeMax)}</strong> ← <em>USE THIS CEILING</em><br>` +
+      `• Lender Sanction Limit: <strong>${fmtINR(r.lenderMax)}</strong><br>` +
+      `<span style="font-size:.78rem;color:var(--muted);display:block;margin-top:.35rem"><em>Lenders evaluate only gross FOIR, ignoring living expenses and safety reserves.</em></span>` +
+    `</div>` +
+    `<div style="background:var(--panel2);border:1px solid var(--rule);border-radius:10px;padding:.85rem 1.05rem;margin-bottom:.85rem;font-size:.85rem;line-height:1.55">` +
+      `<strong style="color:var(--accent);text-transform:uppercase;font-size:.7rem;letter-spacing:.08em;font-family:var(--mono);display:block;margin-bottom:.35rem">O3 · Fair Rate Band & APR</strong>` +
+      `• Fair Rate: <strong>${fmtPct(r.rate.low)} – ${fmtPct(r.rate.high)}</strong> (${r.rate.reason})<br>` +
+      `• All-in APR: <strong>~${fmtPct(r.apr)}</strong> (Calculated via cash-flow IRR on net disbursement)` +
+    `</div>` +
+    `<div style="background:var(--panel2);border:1px solid var(--rule);border-radius:10px;padding:.85rem 1.05rem;margin-bottom:.85rem;font-size:.85rem;line-height:1.55">` +
+      `<strong style="color:var(--accent);text-transform:uppercase;font-size:.7rem;letter-spacing:.08em;font-family:var(--mono);display:block;margin-bottom:.35rem">O4 · EMI Affordability & Cash Flow</strong>` +
+      `• Safe EMI Limit: <strong>${fmtINR(r.safeEMI)}/month</strong> over ${r.tenureMonths || Math.round(r.years * 12)} months<br>` +
+      (r.actualEMI > 0 ? `• Requested Loan EMI: <strong>${fmtINR(r.actualEMI)}/month</strong><br>` : '') +
+      (r.postLoanCashFlow !== undefined ? `• Post-Loan Monthly Cash Flow: <strong>${fmtINR(r.postLoanCashFlow)}/month</strong><br>` : '') +
+      `• Stress Testing: Income −20% → safe EMI drops to ${fmtINR(r.stressSafeEMI)}/mo${r.stressRateEMI > 0 ? `; Rate +2.0% → EMI on ask becomes ${fmtINR(r.stressRateEMI)}/mo` : ''}.` +
+    `</div>` +
+    `<div style="font-size:.86rem;color:var(--muted);padding-top:.15rem">👉 Your branch <strong>Negotiation Card</strong> is displayed on the right panel →</div>`;
   return msg;
 }
 
@@ -1788,7 +1785,7 @@ function getQuestionText(q) {
   return q.text || '';
 }
 
-const COMPASS_AVATAR_SVG = `<div class="msg-avatar" style="background:none;padding:0;"><svg viewBox="0 0 100 100" width="28" height="28" style="display:block;border-radius:50%;"><circle cx="50" cy="50" r="47" fill="#421E3E" stroke="#D6CAD4" stroke-width="5"/><rect x="38" y="24" width="13" height="52" rx="3" fill="#FFFFFF"/><circle cx="63" cy="68" r="7.5" fill="#B35B91"/></svg></div>`;
+const COMPASS_AVATAR_SVG = `<div class="msg-avatar" style="background:none;padding:0;"><svg viewBox="0 0 100 100" width="32" height="32" style="display:block;border-radius:50%;"><circle cx="50" cy="50" r="47" fill="#421E3E" stroke="#D6CAD4" stroke-width="5"/><rect x="38" y="24" width="13" height="52" rx="3" fill="#FFFFFF"/><circle cx="63" cy="68" r="7.5" fill="#B35B91"/></svg></div>`;
 
 function addBotMessage(html, delay=0) {
   return new Promise(resolve => {
