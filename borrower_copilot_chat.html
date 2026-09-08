@@ -3061,13 +3061,20 @@ function setPanelCollapsed(collapse) {
   const btn   = document.getElementById('panelCollapseBtn');
   const app   = document.querySelector('.app');
   if (!panel || !btn) return;
+  const isMobile = window.innerWidth <= 820;
   if (collapse) {
     panel.classList.add('panel-collapsed');
     btn.textContent = '‹';
     btn.title = 'Expand panel';
-    if (app) app.style.gridTemplateColumns = '1fr 42px';
+    if (isMobile) {
+      panel.style.display = 'none';
+    } else {
+      panel.style.display = '';
+      if (app) app.style.gridTemplateColumns = '1fr 42px';
+    }
   } else {
     panel.classList.remove('panel-collapsed');
+    panel.style.display = '';
     btn.textContent = '›';
     btn.title = 'Collapse panel';
     if (app) app.style.gridTemplateColumns = '';
