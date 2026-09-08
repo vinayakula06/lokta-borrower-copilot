@@ -33,6 +33,20 @@ python -m http.server 8080
 
 ---
 
+## 📸 Product Interface & Visual Walkthrough
+
+| 1. Adaptive Guided Flow & Live Sizing | 2. Predefined Topics & "Ask Anything" Mode |
+|:---:|:---:|
+| ![Adaptive Guided Flow](./assets/copilot_guided_flow.png) | ![Ask Anything Mode](./assets/copilot_qa_mode.png) |
+| *Adaptive conversational interview with dynamic live sizing & 1-click personas* | *Domain Q&A chips answering "What is FOIR?", "What is LTV?", and credit math* |
+
+| 3. Assessment Toolkit & Sizing Breakdown | 4. Tactical Negotiation Card & Defense Strategy |
+|:---:|:---:|
+| ![Assessment Results & Action Toolkit](./assets/copilot_assessment_results.png) | ![Negotiation Card Modal](./assets/copilot_negotiation_card.png) |
+| *Explicit separation of Lender Sanction Limit vs Safe Borrower Ceiling* | *Branch-ready talking points, walk-away triggers, and 1-click clipboard copy* |
+
+---
+
 ## 🗺️ Borrower Underwriting Journey
 
 ```mermaid
@@ -79,6 +93,11 @@ flowchart TD
 
 ```
 lokta-borrower-copilot/
+├── assets/                      ← APPLICATION SCREENSHOTS & VISUAL ASSETS
+│   ├── copilot_guided_flow.png
+│   ├── copilot_qa_mode.png
+│   ├── copilot_assessment_results.png
+│   └── copilot_negotiation_card.png
 ├── rules.js                     ← PURE DETERMINISTIC ENGINE (Zero UI / Zero dependencies)
 │                                  Every formula, FOIR slab, rate band, stress rule, and quote evaluator lives here.
 ├── test_engine.js               ← AUTOMATED TEST SUITE (54 unit tests + 1,000 property tests, Node.js runner)
