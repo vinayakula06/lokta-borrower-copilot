@@ -265,13 +265,13 @@ body { background: var(--bg); color: var(--ink); font-family: var(--sans); font-
 .conf-label { font-size: .78rem; color: var(--muted); font-weight: 600; }
 .conf-dims { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 3px; }
 .conf-dim-pill {
-  font-size: .67rem; font-family: var(--mono); padding: 2px 6px; border-radius: 4px;
+  font-size: .67rem; font-family: var(--mono); padding: 2px 7px; border-radius: 4px;
   background: var(--panel2); border: 1px solid var(--rule); color: var(--muted);
-  cursor: default; transition: all .3s;
+  cursor: default; transition: all .3s; font-weight: 600;
 }
-.conf-dim-pill.good { color: var(--good); border-color: rgba(30,122,74,0.35); background: rgba(30,122,74,0.1); font-weight: 600; }
-.conf-dim-pill.warn { color: var(--warn); border-color: rgba(184,138,0,0.35); background: rgba(184,138,0,0.1); font-weight: 600; }
-.conf-dim-pill.bad  { color: var(--bad); border-color: rgba(197,55,39,0.35); background: rgba(197,55,39,0.1); font-weight: 600; }
+.conf-dim-pill.good { color: var(--good); border-color: var(--good); background: var(--good-soft); font-weight: 700; }
+.conf-dim-pill.warn { color: var(--warn); border-color: var(--warn); background: var(--warn-soft); font-weight: 700; }
+.conf-dim-pill.bad  { color: var(--bad); border-color: var(--bad); background: var(--bad-soft); font-weight: 700; }
 
 /* Output blocks */
 .o-block {
@@ -314,6 +314,42 @@ body { background: var(--bg); color: var(--ink); font-family: var(--sans); font-
 .neg-mini-title { font-family: var(--display); font-size: 1rem; font-weight: 600; margin-bottom: .6rem; }
 .neg-line { font-size: .82rem; line-height: 1.5; margin-bottom: .35rem; opacity: .95; }
 .neg-line b { font-weight: 700; }
+
+/* Confidence badges inside dark negotiation card */
+.neg-conf-badges {
+  display: flex; gap: 6px; flex-wrap: wrap; margin-top: .45rem; margin-bottom: .3rem;
+}
+.neg-conf-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: .69rem; font-family: var(--mono); padding: 3px 8px;
+  border-radius: 5px; background: rgba(0,0,0,0.4);
+  border: 1px solid rgba(255,255,255,0.22); color: #FFFFFF;
+  letter-spacing: .02em; line-height: 1.2;
+}
+.neg-conf-badge.good {
+  background: rgba(26, 107, 62, 0.45);
+  border: 1px solid rgba(90, 191, 133, 0.65);
+  color: #FFFFFF;
+}
+.neg-conf-badge.good b {
+  color: #5ABF85; font-weight: 700;
+}
+.neg-conf-badge.warn {
+  background: rgba(138, 75, 18, 0.45);
+  border: 1px solid rgba(223, 160, 96, 0.65);
+  color: #FFFFFF;
+}
+.neg-conf-badge.warn b {
+  color: #FBBF24; font-weight: 700;
+}
+.neg-conf-badge.bad {
+  background: rgba(138, 42, 42, 0.45);
+  border: 1px solid rgba(217, 111, 111, 0.65);
+  color: #FFFFFF;
+}
+.neg-conf-badge.bad b {
+  color: #F87171; font-weight: 700;
+}
 .neg-footer-mini {
   background: rgba(0,0,0,0.25); padding: .5rem 1rem;
   font-size: .7rem; opacity: .7; font-style: italic;
@@ -2212,18 +2248,31 @@ function openNegModal() {
 
     <div class="modal-section-title">Underwriting Confidence & Evidence Level</div>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:.5rem;margin-bottom:.85rem">
-      <div style="background:var(--panel2);border:1px solid var(--rule);padding:.55rem .75rem;border-radius:6px;font-size:.82rem">
-        <strong>Affordability:</strong> <span style="font-weight:700;color:var(--good)">${r.confidence?.dimensions?.affordability?.level || 'HIGH'}</span><br>
-        <span style="font-size:.72rem;color:var(--muted)">${r.confidence?.dimensions?.affordability?.reason || 'Documented income & detailed living expenses'}</span>
-      </div>
-      <div style="background:var(--panel2);border:1px solid var(--rule);padding:.55rem .75rem;border-radius:6px;font-size:.82rem">
-        <strong>Pricing Accuracy:</strong> <span style="font-weight:700;color:var(--good)">${r.confidence?.dimensions?.pricing?.level || 'HIGH'}</span><br>
-        <span style="font-size:.72rem;color:var(--muted)">${r.confidence?.dimensions?.pricing?.reason || 'Credit score known / asset-backed pricing'}</span>
-      </div>
-      <div style="background:var(--panel2);border:1px solid var(--rule);padding:.55rem .75rem;border-radius:6px;font-size:.82rem">
-        <strong>Product Routing:</strong> <span style="font-weight:700;color:var(--good)">${r.confidence?.dimensions?.routing?.level || 'HIGH'}</span><br>
-        <span style="font-size:.72rem;color:var(--muted)">${r.confidence?.dimensions?.routing?.reason || 'Statutory LTV & standard product parameters'}</span>
-      </div>
+      ${(() => {
+        const d = r.confidence?.dimensions || {
+          affordability: { level: 'HIGH', reason: 'Documented income & detailed living expenses' },
+          pricing: { level: 'HIGH', reason: 'Credit score known / asset-backed pricing' },
+          routing: { level: 'HIGH', reason: 'Statutory LTV & standard product parameters' }
+        };
+        const items = [
+          { label: 'Affordability', data: d.affordability },
+          { label: 'Pricing Accuracy', data: d.pricing },
+          { label: 'Product Routing', data: d.routing }
+        ];
+        return items.map(item => {
+          const lvl = item.data?.level || 'HIGH';
+          const col = lvl === 'HIGH' ? 'var(--good)' : (lvl === 'MEDIUM' ? 'var(--warn)' : 'var(--bad)');
+          const bg = lvl === 'HIGH' ? 'var(--good-soft)' : (lvl === 'MEDIUM' ? 'var(--warn-soft)' : 'var(--bad-soft)');
+          return `
+            <div style="background:var(--panel2);border:1.5px solid var(--rule);padding:.6rem .8rem;border-radius:8px;font-size:.82rem">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+                <strong style="color:var(--ink)">${item.label}:</strong>
+                <span style="font-weight:700;font-size:.72rem;font-family:var(--mono);padding:2px 7px;border-radius:4px;background:${bg};color:${col}">${lvl}</span>
+              </div>
+              <div style="font-size:.72rem;color:var(--muted);line-height:1.35">${item.data?.reason || ''}</div>
+            </div>`;
+        }).join('');
+      })()}
     </div>
 
     <div class="modal-section-title">Macroeconomic Stress Test Audit</div>
@@ -2647,27 +2696,42 @@ function renderNegCard() {
     bodyHTML = `
       <div class="neg-line"><b>Status:</b> ${r.verdictReason}</div>
       ${r.pathToYes ? `<div class="path-to-yes"><b>🎯 Path to Yes:</b> ${r.pathToYes}</div>` : ''}
-      <div class="neg-line" style="margin-top:.5rem"><b>Branch Guidance:</b> Do not take on fresh debt. Revisit once current obligations have 6 months of consecutive on-time clearance.</div>`;
+      <div class="neg-line" style="margin-top:.5rem"><b>Branch Guidance:</b> Do not take on fresh debt. Revisit once current obligations have 6 months of consecutive on-time clearance.</div>
+      ${r.confidence && r.confidence.dimensions ? (() => {
+        const d = r.confidence.dimensions;
+        const cls = lvl => lvl === 'HIGH' ? 'good' : (lvl === 'MEDIUM' ? 'warn' : 'bad');
+        const esc = s => (s || '').replace(/"/g, '&quot;');
+        return `
+        <div class="neg-conf-badges">
+          <span class="neg-conf-badge ${cls(d.affordability.level)}" title="${esc(d.affordability.reason)}">Afford: <b>${d.affordability.level}</b></span>
+          <span class="neg-conf-badge ${cls(d.pricing.level)}" title="${esc(d.pricing.reason)}">Pricing: <b>${d.pricing.level}</b></span>
+          <span class="neg-conf-badge ${cls(d.routing.level)}" title="${esc(d.routing.reason)}">Routing: <b>${d.routing.level}</b></span>
+        </div>`;
+      })() : ''}`;
   } else {
     const askAmt = Math.min(A.amount || r.safeMax, r.safeMax);
     const postCF = r.postLoanCashFlow !== undefined ? r.postLoanCashFlow : (r.disposable - (r.actualEMI || r.safeEMI));
     bodyHTML = `
       <div class="neg-line"><b>🎯 Target Ask:</b> ${fmtINR(askAmt)} over ${r.tenureMonths || Math.round(r.years * 12)} months (${r.years} yrs).</div>
       ${r.actualEMI > 0 ? `<div class="neg-line"><b>💵 Requested EMI:</b> ${fmtINR(r.actualEMI)}/mo (at ${fmtPct(r.rate.high)}).</div>` : ''}
-      <div class="neg-line"><b>🛡️ Safe Ceiling:</b> ${fmtINR(r.safeMax)} <span style="font-size:.74rem;color:var(--muted)">(Lender capacity: ${fmtINR(r.lenderMax)} — do not cross safe ceiling).</span></div>
+      <div class="neg-line"><b>🛡️ Safe Ceiling:</b> ${fmtINR(r.safeMax)} <span style="font-size:.74rem;color:rgba(255,255,255,0.72)">(Lender capacity: ${fmtINR(r.lenderMax)} — do not cross safe ceiling).</span></div>
       <div class="neg-line"><b>⚖️ Fair Rate:</b> ${fmtPct(r.rate.low)}–${fmtPct(r.rate.high)} (All-in APR ~${fmtPct(r.apr)} via cash-flow IRR).</div>
       <div class="neg-line"><b>🛑 Do Not Cross:</b> ${fmtINR(r.safeEMI)}/mo EMI ceiling.</div>
       <div class="neg-line"><b>💰 Post-Loan Cash:</b> ${fmtINR(postCF)}/mo buffer remaining.</div>
       ${r.secured ? `<div class="neg-line"><b>🏢 Collateral:</b> ${A.collateralType || 'property'} valued at ~${fmtINR(A.collateralValue || 4500000)} — insist on secured rate card.</div>` : ''}
-      ${r.confidence && r.confidence.dimensions ? `
-        <div class="neg-line" style="margin-top:.4rem;display:flex;gap:5px;flex-wrap:wrap">
-          <span style="font-size:.7rem;padding:2px 6px;border-radius:4px;background:var(--panel2);border:1px solid var(--rule)">Afford: <b>${r.confidence.dimensions.affordability.level}</b></span>
-          <span style="font-size:.7rem;padding:2px 6px;border-radius:4px;background:var(--panel2);border:1px solid var(--rule)">Pricing: <b>${r.confidence.dimensions.pricing.level}</b></span>
-          <span style="font-size:.7rem;padding:2px 6px;border-radius:4px;background:var(--panel2);border:1px solid var(--rule)">Routing: <b>${r.confidence.dimensions.routing.level}</b></span>
-        </div>
-      ` : ''}
-      <div class="neg-line" style="margin-top:.4rem;font-size:.76rem;opacity:.88">
-        <b>What to Ask:</b> "What is your best rate inside ${fmtPct(r.rate.low)}–${fmtPct(r.rate.high)}% and what is the effective APR with GST?"
+      ${r.confidence && r.confidence.dimensions ? (() => {
+        const d = r.confidence.dimensions;
+        const cls = lvl => lvl === 'HIGH' ? 'good' : (lvl === 'MEDIUM' ? 'warn' : 'bad');
+        const esc = s => (s || '').replace(/"/g, '&quot;');
+        return `
+        <div class="neg-conf-badges">
+          <span class="neg-conf-badge ${cls(d.affordability.level)}" title="${esc(d.affordability.reason)}">Afford: <b>${d.affordability.level}</b></span>
+          <span class="neg-conf-badge ${cls(d.pricing.level)}" title="${esc(d.pricing.reason)}">Pricing: <b>${d.pricing.level}</b></span>
+          <span class="neg-conf-badge ${cls(d.routing.level)}" title="${esc(d.routing.reason)}">Routing: <b>${d.routing.level}</b></span>
+        </div>`;
+      })() : ''}
+      <div class="neg-line" style="margin-top:.45rem;font-size:.76rem;opacity:.92">
+        <b>What to Ask:</b> "What is your best rate inside ${fmtPct(r.rate.low)}–${fmtPct(r.rate.high)} and what is the effective APR with GST?"
       </div>`;
   }
 
