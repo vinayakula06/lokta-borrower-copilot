@@ -961,9 +961,6 @@ body { background: var(--bg); color: var(--ink); font-family: var(--sans); font-
         <button class="nav-btn new-chat" id="newChatBtn" onclick="handleNewChat()" title="Start a fresh conversation">
           <span>➕ New Chat</span>
         </button>
-        <button class="nav-btn" id="forwardBtn" onclick="handleGoForward()" title="Forward / Skip question" disabled>
-          <span>Forward →</span>
-        </button>
       </div>
       <div class="input-choices" id="inputChoices"></div>
       <div class="input-row">
@@ -1750,14 +1747,10 @@ let questionHistory = [];
 
 function updateNavState() {
   const backBtn = document.getElementById('backBtn');
-  const forwardBtn = document.getElementById('forwardBtn');
   const newChatBtn = document.getElementById('newChatBtn');
 
   if (backBtn) {
     backBtn.disabled = (questionHistory.length === 0 || isTyping);
-  }
-  if (forwardBtn) {
-    forwardBtn.disabled = (done || isTyping || !currentQ || currentQ.id === 'greeting');
   }
   if (newChatBtn) {
     newChatBtn.disabled = isTyping;
@@ -1789,19 +1782,6 @@ async function handleGoBack() {
   done = false;
   updateLivePanel();
   await askQuestion(prevState.q);
-  updateNavState();
-}
-
-async function handleGoForward() {
-  if (!currentQ || isTyping || done) return;
-  if (currentQ.choices && currentQ.choices.length > 0) {
-    const val = currentQ.choices[0];
-    await handleUserInput(val);
-  } else if (currentQ.input === 'number') {
-    await handleUserInput('0', 0);
-  } else {
-    await handleUserInput('Skipped', '');
-  }
   updateNavState();
 }
 
