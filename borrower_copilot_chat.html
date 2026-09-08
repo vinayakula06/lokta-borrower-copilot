@@ -1044,6 +1044,8 @@ body { background: var(--bg); color: var(--ink); font-family: var(--sans); font-
 </div>
 
 <!-- PRINT REPORT CONTAINER (Inputs + Outputs Summary for PDF export) -->
+<div id="printReport" class="print-report" style="display:none"></div>
+
 <script src="rules.js?v=3"></script>
 <script>
 /* ====================================================
@@ -1561,6 +1563,7 @@ function loanTypeName(t) {
    COMPUTE MESSAGE BUILDER
    ==================================================== */
 function buildComputeMessage(r) {
+  if (!r) return 'Something went wrong — I couldn\'t compute with the answers so far.';
   let msg = `✅ <strong>Here are your four underwriting outputs:</strong>\n\n`;
   const icons = { borrow:'✅', less:'⚠️', no:'🛑' };
   msg += `<strong>O1 — ${icons[r.verdictClass]} ${r.verdict.toUpperCase()}</strong>\n${r.verdictReason}\n\n`;
@@ -2465,13 +2468,27 @@ function buildPrintReport(a, r) {
   </div>
   `;
 
-  document.getElementById('printReport').innerHTML = html;
+  let prEl = document.getElementById('printReport');
+  if (!prEl) {
+    prEl = document.createElement('div');
+    prEl.id = 'printReport';
+    prEl.className = 'print-report';
+    prEl.style.display = 'none';
+    document.body.appendChild(prEl);
+  }
+  prEl.innerHTML = html;
 }
 
 function printFullReport() {
   const r = runEngine(A);
+  if (!r) {
+    showToast('Please complete or load a profile first.');
+    return;
+  }
   buildPrintReport(A, r);
-  window.print();
+  setTimeout(() => {
+    window.print();
+  }, 100);
 }
 
 /* ===== POST-ASSESSMENT INTERACTION & CONVERSATION RESET ===== */
@@ -3220,8 +3237,10 @@ const origKeyHandler = (e) => {
 inputEl.removeEventListener('keydown', origKeyHandler);
 inputEl.addEventListener('keydown', origKeyHandler);
 
-// Init QA chips on load
-buildQAChips();
+// Init QA chips on load if available
+if (typeof buildQAChips === 'function') {
+  buildQAChips();
+}
 </script>
 </body>
 </html>
