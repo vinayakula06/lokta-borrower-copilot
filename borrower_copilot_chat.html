@@ -363,91 +363,78 @@ body { background: var(--bg); color: var(--ink); font-family: var(--sans); font-
 }
 .persona-pill:hover { border-color: var(--accent); color: var(--accent); }
 
-/* ===== ASK ANYTHING MODE (COLLAPSIBLE SUGGESTIONS) ===== */
-.qa-suggestions {
-  padding: .35rem .9rem;
+/* ===== ASK ANYTHING PREDEFINED KEYWORDS PANEL ===== */
+.qa-keywords-panel {
+  padding: .75rem 1rem;
+  background: var(--panel);
   border-top: 1px solid var(--rule);
-  background: var(--panel2);
-  flex-shrink: 0;
-  transition: all var(--t);
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
 }
-.qa-suggestions-header {
+.qa-keywords-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: .5rem;
-}
-.qa-toggle-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: .4rem;
-  padding: .28rem .7rem;
-  border-radius: 99px;
-  border: 1.5px solid var(--rule);
-  background: var(--panel);
-  color: var(--ink2);
-  font-family: var(--sans);
-  font-size: .76rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all var(--t);
-}
-.qa-toggle-btn:hover {
-  background: var(--accent-softer);
-  border-color: var(--accent);
+  font-size: .74rem;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
   color: var(--accent);
 }
-.qa-toggle-icon {
-  font-size: .75rem;
-  transition: transform var(--t);
-}
-.qa-toggle-btn.open .qa-toggle-icon {
-  transform: rotate(180deg);
-}
-.qa-suggestions-hint {
-  font-size: .7rem;
-  color: var(--muted);
-  font-style: italic;
-}
-.qa-chips-drawer {
-  max-height: 150px;
+.qa-keywords-scroll {
+  max-height: 220px;
   overflow-y: auto;
-  margin-top: .45rem;
-  padding: .5rem;
-  background: var(--panel);
-  border: 1px solid var(--rule);
-  border-radius: var(--radius-sm);
-  box-shadow: inset 0 1px 3px rgba(0,0,0,0.06);
-}
-.qa-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: .35rem;
-}
-.qa-chip {
-  padding: .28rem .7rem;
-  border: 1px solid var(--rule);
+  padding: .65rem;
   background: var(--panel2);
-  border-radius: 99px;
-  font-family: var(--sans);
-  font-size: .76rem;
-  font-weight: 500;
-  color: var(--ink2);
-  cursor: pointer;
-  transition: all var(--t);
-  white-space: nowrap;
+  border: 1.5px solid var(--rule);
+  border-radius: var(--radius-sm);
+  display: flex;
+  flex-direction: column;
+  gap: .75rem;
+  box-shadow: inset 0 2px 6px rgba(0,0,0,0.04);
 }
-.qa-chip:hover {
-  border-color: var(--accent);
-  color: var(--accent);
-  background: var(--accent-softer);
+.qa-keywords-scroll::-webkit-scrollbar { width: 5px; }
+.qa-keywords-scroll::-webkit-scrollbar-thumb { background: var(--rule); border-radius: 99px; }
+.qa-topic-group {
+  display: flex;
+  flex-direction: column;
+  gap: .4rem;
 }
-.qa-category {
-  width: 100%;
-  font-size: .65rem;
+.qa-topic-title {
+  font-size: .68rem;
   font-weight: 700;
   letter-spacing: .08em;
   text-transform: uppercase;
+  color: var(--muted);
+  border-bottom: 1px dashed var(--rule);
+  padding-bottom: .2rem;
+}
+.qa-topic-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .4rem;
+}
+.qa-keyword-chip {
+  padding: .38rem .85rem;
+  border: 1.5px solid var(--accent);
+  background: var(--panel);
+  color: var(--ink);
+  border-radius: 99px;
+  font-family: var(--sans);
+  font-size: .81rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--t);
+  text-align: left;
+}
+.qa-keyword-chip:hover {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow);
+}
   color: var(--muted);
   margin-top: .45rem;
   margin-bottom: .2rem;
@@ -929,18 +916,13 @@ body { background: var(--bg); color: var(--ink); font-family: var(--sans); font-
 
     <div class="chat-messages" id="chatMessages"></div>
 
-    <!-- Ask Anything: suggested questions (collapsible drawer) -->
-    <div class="qa-suggestions" id="qaSuggestions" style="display:none">
-      <div class="qa-suggestions-header">
-        <button class="qa-toggle-btn" id="qaToggleBtn" onclick="toggleQASuggestions()" title="Click to show/hide suggested questions">
-          <span>💡 Suggested Questions &amp; Topics</span>
-          <span class="qa-toggle-icon" id="qaToggleIcon">▾</span>
-        </button>
-        <span class="qa-suggestions-hint" id="qaSuggestionsHint">Hidden for clean view · Click to browse</span>
+    <!-- Ask Anything: Predefined scrollable keywords panel -->
+    <div class="qa-keywords-panel" id="qaKeywordsPanel" style="display:none">
+      <div class="qa-keywords-header">
+        <span>🏷️ Predefined Topics &amp; Question Keywords</span>
+        <span style="font-weight:400;color:var(--muted)">Scroll down to explore · Tap any keyword</span>
       </div>
-      <div class="qa-chips-drawer" id="qaChipsDrawer" style="display:none">
-        <div class="qa-chips" id="qaChips"></div>
-      </div>
+      <div class="qa-keywords-scroll" id="qaKeywordsScroll"></div>
     </div>
 
     <!-- persona quick-load -->
@@ -2609,31 +2591,37 @@ function switchMode(mode) {
   currentMode = mode;
   document.getElementById('tabGuided').classList.toggle('active', mode === 'guided');
   document.getElementById('tabQA').classList.toggle('active', mode === 'qa');
-  document.getElementById('qaSuggestions').style.display = mode === 'qa' ? '' : 'none';
-  document.getElementById('personaBarWrap').style.display = mode === 'guided' ? '' : 'none';
 
-  // Restore messages
-  messagesEl.innerHTML = mode === 'guided' ? guidedMessages : qaMessages;
-  scrollChat();
+  const qaPanel = document.getElementById('qaKeywordsPanel');
+  const inputRow = document.querySelector('.input-row');
+  const chatNavRow = document.getElementById('chatNavRow');
+  const personaBar = document.getElementById('personaBarWrap');
 
-  // Clear guided input state in QA mode
   if (mode === 'qa') {
+    if (qaPanel) qaPanel.style.display = '';
+    if (inputRow) inputRow.style.display = 'none';
+    if (chatNavRow) chatNavRow.style.display = 'none';
+    if (personaBar) personaBar.style.display = 'none';
+
     choicesEl.innerHTML = '';
-    inputEl.style.display = '';
-    inputEl.placeholder = 'Ask me anything about borrowing…';
-    sendBtn.disabled = false;
-    if (typeof hideQASuggestions === 'function') hideQASuggestions();
-    // First time entering QA mode
+    messagesEl.innerHTML = qaMessages || '';
+
     if (!qaMessages) {
-      addBotQA(`💬 <strong>Ask me anything about borrowing.</strong><br><br>I know Indian lending rules, FOIR, credit scores, EMI calculations, loan products, and how the numbers in your assessment work.<br><br>If you've already run a guided assessment, I can also explain <em>your specific</em> numbers. Try something like: <em>"Why is my safe EMI lower than the lender amount?"</em>`);
+      addBotQA(`💬 <strong>Welcome to Ask Anything mode!</strong><br><br>Explore the scrollable predefined keyword topics below. Tap any question for an instant, clear breakdown.<br><br>If you've already run a guided assessment, topics will also analyze <em>your specific numbers</em>!`);
     }
-    buildQAChips();
+    renderPredefinedKeywords();
   } else {
-    // Restore guided mode input state
+    if (qaPanel) qaPanel.style.display = 'none';
+    if (inputRow) inputRow.style.display = '';
+    if (chatNavRow) chatNavRow.style.display = '';
+    if (personaBar) personaBar.style.display = '';
+
+    messagesEl.innerHTML = guidedMessages;
     if (currentQ && !done) setInputMode(currentQ);
     else if (done) enablePostAssessmentInput();
     else setInputMode(null);
   }
+  scrollChat();
 }
 
 /* ====================================================
@@ -2897,52 +2885,39 @@ const QA_KNOWLEDGE = [
   },
 ];
 
-let qaDrawerOpen = false;
+function renderPredefinedKeywords() {
+  const container = document.getElementById('qaKeywordsScroll');
+  if (!container) return;
+  container.innerHTML = '';
 
-function toggleQASuggestions(forceState) {
-  const drawer = document.getElementById('qaChipsDrawer');
-  const btn = document.getElementById('qaToggleBtn');
-  const hint = document.getElementById('qaSuggestionsHint');
-  if (!drawer || !btn) return;
-
-  if (typeof forceState === 'boolean') {
-    qaDrawerOpen = forceState;
-  } else {
-    qaDrawerOpen = !qaDrawerOpen;
-  }
-
-  drawer.style.display = qaDrawerOpen ? 'block' : 'none';
-  btn.classList.toggle('open', qaDrawerOpen);
-  if (hint) {
-    hint.textContent = qaDrawerOpen ? 'Click a topic or close to read chat' : 'Hidden for clean view · Click to browse';
-  }
-  scrollChat();
-}
-
-function hideQASuggestions() {
-  toggleQASuggestions(false);
-}
-
-// Flatten questions for chip display
-function buildQAChips() {
-  const chipsEl = document.getElementById('qaChips');
-  if (!chipsEl) return;
-  chipsEl.innerHTML = '';
   QA_KNOWLEDGE.forEach(group => {
+    if (!group.questions || group.questions.length === 0) return;
+
+    const groupDiv = document.createElement('div');
+    groupDiv.className = 'qa-topic-group';
+
     if (group.category) {
-      const cat = document.createElement('div');
-      cat.className = 'qa-category'; cat.textContent = group.category;
-      chipsEl.appendChild(cat);
+      const titleDiv = document.createElement('div');
+      titleDiv.className = 'qa-topic-title';
+      titleDiv.textContent = group.category;
+      groupDiv.appendChild(titleDiv);
     }
-    (group.questions||[]).forEach(q => {
-      const chip = document.createElement('button');
-      chip.className = 'qa-chip'; chip.textContent = q;
-      chip.addEventListener('click', () => {
-        hideQASuggestions();
-        handleQAInput(q);
+
+    const chipsDiv = document.createElement('div');
+    chipsDiv.className = 'qa-topic-chips';
+
+    group.questions.forEach(qText => {
+      const btn = document.createElement('button');
+      btn.className = 'qa-keyword-chip';
+      btn.textContent = qText;
+      btn.addEventListener('click', () => {
+        handleQAInput(qText);
       });
-      chipsEl.appendChild(chip);
+      chipsDiv.appendChild(btn);
     });
+
+    groupDiv.appendChild(chipsDiv);
+    container.appendChild(groupDiv);
   });
 }
 
@@ -2988,10 +2963,8 @@ async function addBotQA(html) {
 }
 
 async function handleQAInput(query) {
-  if (currentMode !== 'qa') return;
-  hideQASuggestions();
+  if (!query || !query.trim()) return;
   addUserMessage(query);
-  inputEl.value = '';
   const answer = findQAAnswer(query);
   await addBotQA(answer);
 }
