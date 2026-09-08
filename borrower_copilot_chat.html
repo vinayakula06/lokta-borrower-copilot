@@ -2016,6 +2016,9 @@ function enablePostAssessmentInput() {
   const inputRow = document.querySelector('.input-row');
   if (inputRow) inputRow.style.display = 'none';
 
+  const chatNavRow = document.getElementById('chatNavRow');
+  if (chatNavRow) chatNavRow.style.display = '';
+
   const faqBtn = document.getElementById('faqBtn');
   if (faqBtn) faqBtn.style.display = '';
 
@@ -3063,10 +3066,10 @@ function switchMode(mode) {
     if (progWrap) progWrap.style.display = '';
     if (qaPanel) qaPanel.style.display = 'none';
     if (personaBar) personaBar.style.display = '';
+    if (chatNavRow) chatNavRow.style.display = '';
     if (choicesEl) choicesEl.style.display = '';
 
     if (currentQ && !done) {
-      if (chatNavRow) chatNavRow.style.display = '';
       if (inputRow) inputRow.style.display = currentQ.choices ? 'none' : 'flex';
       setInputMode(currentQ);
     } else if (done) {
@@ -3075,6 +3078,7 @@ function switchMode(mode) {
       if (inputRow) inputRow.style.display = 'none';
       setInputMode(null);
     }
+    updateNavState();
   }
 }
 
