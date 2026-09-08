@@ -63,6 +63,7 @@ body { background: var(--bg); color: var(--ink); font-family: var(--sans); font-
 }
 .topbar-name { font-family: var(--display); font-size: 1.1rem; font-weight: 600; }
 .topbar-name em { font-style: italic; color: var(--accent); }
+.brand-lokta { font-family: var(--sans); font-weight: 800; font-size: 1.15rem; color: var(--accent); letter-spacing: -0.02em; }
 .topbar-pill {
   font-size: .65rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
   background: var(--accent-soft); color: var(--accent);
@@ -898,7 +899,7 @@ body { background: var(--bg); color: var(--ink); font-family: var(--sans); font-
           <circle cx="63" cy="68" r="7.5" fill="#B35B91"/>
         </svg>
       </div>
-      <span class="topbar-name">Borrower <em>Copilot</em></span>
+      <span class="topbar-name"><strong class="brand-lokta">lokta</strong> · Borrower <em>Copilot</em></span>
     </div>
     <div class="topbar-actions">
       <button class="icon-btn" id="themeToggle" title="Toggle dark mode">🌙</button>
@@ -2141,7 +2142,7 @@ function buildPrintReport(a, r) {
           <circle cx="50" cy="50" r="47" fill="#421E3E" stroke="#D6CAD4" stroke-width="5"/>
           <rect x="38" y="24" width="13" height="52" rx="3" fill="#FFFFFF"/>
           <circle cx="63" cy="68" r="7.5" fill="#B35B91"/>
-        </svg>Borrower <em>Copilot</em>
+        </svg><strong class="brand-lokta" style="font-size:12pt;">lokta</strong> · Borrower <em>Copilot</em>
       </div>
       <div style="font-size:8pt;color:#555;margin-top:2px">Deterministic Underwriting Engine · Complete Assessment & Negotiation Report</div>
     </div>
