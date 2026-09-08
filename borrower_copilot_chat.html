@@ -2985,16 +2985,15 @@ async function restart() {
 
 document.getElementById('restartBtn').addEventListener('click', restart);
 
-// Dark mode
+// Theme Toggle: default is light (white/light bg). Users can toggle anytime via the moon/sun button.
 const themeToggle = document.getElementById('themeToggle');
-themeToggle.addEventListener('click', () => {
-  const html = document.documentElement;
-  const dark = html.dataset.theme==='dark';
-  html.dataset.theme = dark?'light':'dark';
-  themeToggle.textContent = dark?'🌙':'☀️';
-});
-if (window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches) {
-  document.documentElement.dataset.theme='dark'; themeToggle.textContent='☀️';
+if (themeToggle) {
+  themeToggle.addEventListener('click', () => {
+    const html = document.documentElement;
+    const isDark = html.dataset.theme === 'dark';
+    html.dataset.theme = isDark ? 'light' : 'dark';
+    themeToggle.textContent = isDark ? '🌙' : '☀️';
+  });
 }
 
 // Boot
