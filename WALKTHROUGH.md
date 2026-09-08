@@ -70,7 +70,7 @@ Instead of dead-ending, the Negotiation Card pivots into a **"Path to Yes"**: a 
   1. `📄 Print / Save Complete PDF (Inputs + Outputs)`: Launches the print report.
   2. `📑 View Negotiation Card`: Opens a modal dialog with branch scripts, talking points, and walk-away triggers.
   3. `🔄 New Borrower / New Conversation`: Restarts the conversation cleanly.
-- **Active Post-Assessment Input & Minimal UI:** The borrower is never left at a dead end—the input field stays active with two clean, clutter-free action buttons (`[🔄 New Chat]` and `[👤 Other Person]`), and handles both natural-language new loan requests and Q&A inquiries.
+- **Clean Post-Assessment Action Dock:** After receiving the assessment, the manual text box transforms into an Action Dock with three focused action pills: `[ ← Back ]` (re-enabled so the borrower can step back and revise declared numbers), `[ ➕ New Chat ]` (to start a fresh assessment), and `[ 🔍 Browse FAQs ]` (to instantly browse domain questions in Q&A mode). Quick-load persona pills (`Priya`, `Ravi`, `Anita`) remain accessible at the top header.
 
 ### G. True Cash-Flow APR Engine (RBI KFS Compliance)
 - APR is **never** calculated by naive arithmetic addition ($22\% + 2.36\% + \text{GST} \neq 22.6\%$).
