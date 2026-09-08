@@ -1021,7 +1021,26 @@ body { background: var(--bg); color: var(--ink); font-family: var(--sans); font-
       <div class="guided-progress-bar" id="guidedProgressBar" style="width: 10%;"></div>
     </div>
 
+    <!-- Guided Flow Messages Container -->
     <div class="chat-messages" id="chatMessages"></div>
+
+    <!-- Ask Anything (Q&A) Messages Container -->
+    <div class="chat-messages" id="qaMessages" style="display:none;">
+      <div class="msg bot">
+        <div class="msg-avatar" style="background:none;padding:0;">
+          <svg viewBox="0 0 100 100" width="32" height="32" style="display:block;border-radius:50%;">
+            <circle cx="50" cy="50" r="47" fill="#421E3E" stroke="#D6CAD4" stroke-width="5"/>
+            <rect x="38" y="24" width="13" height="52" rx="3" fill="#FFFFFF"/>
+            <circle cx="63" cy="68" r="7.5" fill="#B35B91"/>
+          </svg>
+        </div>
+        <div class="bubble bot">
+          💬 <strong>Welcome to Ask Anything mode!</strong><br><br>
+          Explore the predefined topics below. Tap any question for an instant, clear breakdown.<br><br>
+          If you've already run a guided assessment, questions will also analyze <em>your specific numbers</em>!
+        </div>
+      </div>
+    </div>
 
     <!-- Ask Anything: Predefined scrollable keywords panel -->
     <div class="qa-keywords-panel" id="qaKeywordsPanel" style="display:none">
@@ -2901,6 +2920,7 @@ const PERSONAS = {
 
 async function loadPersona(key) {
   if (isTyping) return;
+  if (currentMode !== 'guided') switchMode('guided');
   const inputArea = document.getElementById('chatInputArea');
   if (inputArea) inputArea.classList.remove('post-report');
   const faqBtn = document.getElementById('faqBtn');
@@ -2954,6 +2974,7 @@ document.querySelectorAll('.persona-pill').forEach(btn => {
    ==================================================== */
 async function restart() {
   closeNegModal();
+  if (currentMode !== 'guided') switchMode('guided');
   const inputArea = document.getElementById('chatInputArea');
   if (inputArea) inputArea.classList.remove('post-report');
   const faqBtn = document.getElementById('faqBtn');
@@ -3003,23 +3024,16 @@ restart();
    MODE SWITCHER
    ==================================================== */
 let currentMode = 'guided'; // 'guided' | 'qa'
-let qaMessages = []; // separate message history for QA mode
-let guidedMessages = []; // save guided messages when switching
 
 function switchMode(mode) {
   if (mode === currentMode) return;
-
-  // Save current messages
-  if (currentMode === 'guided') {
-    guidedMessages = messagesEl.innerHTML;
-  } else {
-    qaMessages = messagesEl.innerHTML;
-  }
-
   currentMode = mode;
+
   document.getElementById('tabGuided').classList.toggle('active', mode === 'guided');
   document.getElementById('tabQA').classList.toggle('active', mode === 'qa');
 
+  const guidedContainer = document.getElementById('chatMessages');
+  const qaContainer = document.getElementById('qaMessages');
   const qaPanel = document.getElementById('qaKeywordsPanel');
   const progWrap = document.getElementById('guidedProgressWrap');
   const inputRow = document.querySelector('.input-row');
@@ -3027,28 +3041,33 @@ function switchMode(mode) {
   const personaBar = document.getElementById('personaBarWrap');
 
   if (mode === 'qa') {
+    if (guidedContainer) guidedContainer.style.display = 'none';
+    if (qaContainer) {
+      qaContainer.style.display = 'flex';
+      qaContainer.scrollTop = qaContainer.scrollHeight;
+    }
     if (progWrap) progWrap.style.display = 'none';
     if (qaPanel) qaPanel.style.display = '';
     if (inputRow) inputRow.style.display = 'none';
     if (chatNavRow) chatNavRow.style.display = 'none';
     if (personaBar) personaBar.style.display = 'none';
+    if (choicesEl) choicesEl.style.display = 'none';
 
-    choicesEl.innerHTML = '';
-    messagesEl.innerHTML = qaMessages || '';
-
-    if (!qaMessages) {
-      addBotQA(`💬 <strong>Welcome to Ask Anything mode!</strong><br><br>Explore the scrollable predefined keyword topics below. Tap any question for an instant, clear breakdown.<br><br>If you've already run a guided assessment, topics will also analyze <em>your specific numbers</em>!`);
-    }
     renderPredefinedKeywords();
   } else {
+    if (qaContainer) qaContainer.style.display = 'none';
+    if (guidedContainer) {
+      guidedContainer.style.display = 'flex';
+      guidedContainer.scrollTop = guidedContainer.scrollHeight;
+    }
     if (progWrap) progWrap.style.display = '';
     if (qaPanel) qaPanel.style.display = 'none';
-    if (chatNavRow) chatNavRow.style.display = '';
     if (personaBar) personaBar.style.display = '';
+    if (choicesEl) choicesEl.style.display = '';
 
-    messagesEl.innerHTML = guidedMessages;
     if (currentQ && !done) {
-      if (inputRow) inputRow.style.display = '';
+      if (chatNavRow) chatNavRow.style.display = '';
+      if (inputRow) inputRow.style.display = currentQ.choices ? 'none' : 'flex';
       setInputMode(currentQ);
     } else if (done) {
       enablePostAssessmentInput();
@@ -3057,7 +3076,6 @@ function switchMode(mode) {
       setInputMode(null);
     }
   }
-  scrollChat();
 }
 
 /* ====================================================
@@ -3384,23 +3402,29 @@ function findQAAnswer(query) {
 }
 
 async function addBotQA(html) {
+  const qaContainer = document.getElementById('qaMessages') || messagesEl;
   const typer = document.createElement('div');
   typer.className = 'msg bot';
   typer.innerHTML = `${COMPASS_AVATAR_SVG}<div class="bubble"><div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div></div>`;
-  messagesEl.appendChild(typer);
-  scrollChat();
-  await new Promise(r => setTimeout(r, 500));
+  qaContainer.appendChild(typer);
+  qaContainer.scrollTop = qaContainer.scrollHeight;
+  await new Promise(r => setTimeout(r, 400));
   typer.remove();
   const m = document.createElement('div');
   m.className = 'msg bot';
   m.innerHTML = `${COMPASS_AVATAR_SVG}<div class="bubble">${html.replace(/\n/g,'<br>')}</div>`;
-  messagesEl.appendChild(m);
-  scrollChat();
+  qaContainer.appendChild(m);
+  qaContainer.scrollTop = qaContainer.scrollHeight;
 }
 
 async function handleQAInput(query) {
   if (!query || !query.trim()) return;
-  addUserMessage(query);
+  const qaContainer = document.getElementById('qaMessages') || messagesEl;
+  const m = document.createElement('div');
+  m.className = 'msg user';
+  m.innerHTML = `<div class="msg-avatar user">👤</div><div class="bubble user">${query}</div>`;
+  qaContainer.appendChild(m);
+  qaContainer.scrollTop = qaContainer.scrollHeight;
   const answer = findQAAnswer(query);
   await addBotQA(answer);
 }
