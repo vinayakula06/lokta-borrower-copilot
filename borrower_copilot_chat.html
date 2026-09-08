@@ -321,7 +321,7 @@ body { background: var(--bg); color: var(--ink); font-family: var(--sans); font-
 /* Path to yes callout for refusals */
 .path-to-yes {
   margin-top: .45rem; padding: .45rem .65rem; border-radius: 6px;
-  background: rgba(255,255,255,.15); font-size: .78rem; line-height: 1.4;
+  background: rgba(255,255,255,.15); color: #ffffff; font-size: .78rem; line-height: 1.4;
   border-left: 3px solid #FFD166;
 }
 
@@ -1982,14 +1982,14 @@ function openNegModal() {
       <div style="background:var(--bad-soft);border:1.5px solid var(--bad);padding:.75rem .95rem;border-radius:8px;margin-bottom:1rem;color:var(--bad)">
         <div style="font-weight:800;font-size:.95rem">🛑 ${vCode}</div>
         <div style="font-size:.85rem;margin-top:.25rem;line-height:1.4">${r.verdictReason}</div>
-        ${r.pathToYes ? `<div style="margin-top:.5rem;padding:.45rem .65rem;background:#fff;border-radius:6px;font-size:.82rem;color:var(--ink)"><strong>🎯 Path to Yes:</strong> ${r.pathToYes}</div>` : ''}
+        ${r.pathToYes ? `<div style="margin-top:.5rem;padding:.45rem .65rem;background:var(--panel);border:1px solid var(--rule);border-radius:6px;font-size:.82rem;color:var(--ink)"><strong style="color:var(--warn)">🎯 Path to Yes:</strong> ${r.pathToYes}</div>` : ''}
       </div>`;
   } else if (r.verdictClass === 'less') {
     statusHTML = `
       <div style="background:var(--warn-soft);border:1.5px solid var(--warn);padding:.75rem .95rem;border-radius:8px;margin-bottom:1rem;color:var(--warn)">
         <div style="font-weight:800;font-size:.95rem">⚠️ ${vCode}</div>
         <div style="font-size:.85rem;margin-top:.25rem;line-height:1.4">${r.verdictReason}</div>
-        ${r.pathToYes ? `<div style="margin-top:.5rem;padding:.45rem .65rem;background:#fff;border-radius:6px;font-size:.82rem;color:var(--ink)"><strong>🎯 Safe Adjustment:</strong> ${r.pathToYes}</div>` : ''}
+        ${r.pathToYes ? `<div style="margin-top:.5rem;padding:.45rem .65rem;background:var(--panel);border:1px solid var(--rule);border-radius:6px;font-size:.82rem;color:var(--ink)"><strong style="color:var(--warn)">🎯 Safe Adjustment:</strong> ${r.pathToYes}</div>` : ''}
       </div>`;
   } else {
     statusHTML = `
