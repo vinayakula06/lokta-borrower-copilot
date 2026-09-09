@@ -2840,6 +2840,7 @@ function updateLivePanel() {
       • Income −20% → safe EMI drops to <strong>${fmtINR(r.stressSafeEMI)}/mo</strong><br>
       • Rate +2.0% (to ${fmtPct(r.stressRatePct)}) → ask EMI: <strong>${fmtINR(r.stressRateEMI)}/mo</strong>
     </div>`;
+  o4.innerHTML = o4html;
   document.getElementById('o4block').classList.add('lit');
 
   // Trigger subtle pulse animation on updated blocks
